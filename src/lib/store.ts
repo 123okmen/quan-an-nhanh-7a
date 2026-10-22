@@ -358,12 +358,78 @@ export interface Order {
   source?: string;
 }
 
-export const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby8rz7upff345Kvv_pK-AVdClBsUit68aUgj4Cl8bvPN6vmM8_i8NZpJe2VqxE6Mc4qZQ/exec";
+export const APP_SCRIPT_URL = "";
+export const CUSTOM_SCRIPT_URL_KEY = "fastfood_7a_custom_script_url_v1";
+export const CUSTOM_SHEET_VIEW_URL_KEY = "fastfood_7a_sheet_view_url_v1";
+export const CONFIG_CHANGED_EVENT = "fastfood_7a_config_changed";
 
 /** Key localStorage dùng riêng cho mô hình quán ăn nhanh Phước Thiện */
 export const ORDERS_KEY = 'fastfood_7a_orders_v1';
 export const ORDERS_CHANGED_EVENT = 'fastfood_7a_orders_changed';
+export const EXPENSES_KEY = 'fastfood_7a_expenses_v1';
+export const EXPENSES_CHANGED_EVENT = 'fastfood_7a_expenses_changed';
 export const OFFICIAL_OPENING_DATE = '2026-10-22';
+
+export type ExpenseCategory =
+  | 'Thịt · Gà · Bò · Hải Sản'
+  | 'Vỏ Bánh Bao · Mì · Hủ Tiếu · Gạo'
+  | 'Dầu Ăn · Gia Vị · Sốt · Trứng · Rau'
+  | 'Hộp Xốp · Túi · Ly · Bao Bì'
+  | 'Gas · Điện · Nước · Đá Viên'
+  | 'Nhân Sự · Sửa Chữa · Chi Khác';
+
+export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
+  'Thịt · Gà · Bò · Hải Sản',
+  'Vỏ Bánh Bao · Mì · Hủ Tiếu · Gạo',
+  'Dầu Ăn · Gia Vị · Sốt · Trứng · Rau',
+  'Hộp Xốp · Túi · Ly · Bao Bì',
+  'Gas · Điện · Nước · Đá Viên',
+  'Nhân Sự · Sửa Chữa · Chi Khác',
+];
+
+export interface Expense {
+  id: string;
+  time: string;
+  staff: string;
+  shift: Shift;
+  category: ExpenseCategory | string;
+  title: string;
+  amount: number;
+  paymentMethod: PaymentMethod;
+  synced: boolean;
+}
+
+export function newExpenseId(): string {
+  return 'CP' + Date.now().toString().slice(-8);
+}
+
+export function getExpenses(): Expense[] {
+  try {
+    const raw = localStorage.getItem(EXPENSES_KEY);
+    if (!raw) return [];
+    const list = JSON.parse(raw) as Expense[];
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveExpense(exp: Expense) {
+  const list = getExpenses().filter(e => e.id !== exp.id);
+  list.unshift(exp);
+  localStorage.setItem(EXPENSES_KEY, JSON.stringify(list));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(EXPENSES_CHANGED_EVENT, { detail: exp }));
+  }
+}
+
+export function deleteExpense(expenseId: string) {
+  const list = getExpenses().filter(e => e.id !== expenseId);
+  localStorage.setItem(EXPENSES_KEY, JSON.stringify(list));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(EXPENSES_CHANGED_EVENT, { detail: { id: expenseId, deleted: true } }));
+  }
+}
 
 export function isOrderFromOpening(timeStr: string, orderId?: string): boolean {
   if (orderId && orderId.startsWith('TEST_')) return false;
@@ -467,7 +533,7 @@ export function newOrderId(): string {
 
 export function getScriptUrl(): string {
   if (typeof window !== 'undefined') {
-    const custom = localStorage.getItem('fastfood_custom_script_url');
+    const custom = localStorage.getItem(CUSTOM_SCRIPT_URL_KEY) || localStorage.getItem('fastfood_custom_script_url');
     if (custom && custom.startsWith('http')) {
       return custom.trim();
     }
@@ -475,19 +541,46 @@ export function getScriptUrl(): string {
   return APP_SCRIPT_URL;
 }
 
+export function hasConfiguredScriptUrl(): boolean {
+  const url = getScriptUrl();
+  return Boolean(url && url.startsWith('https://script.google.com/'));
+}
+
 export function setCustomScriptUrl(url: string) {
   if (typeof window !== 'undefined') {
     if (!url.trim()) {
+      localStorage.removeItem(CUSTOM_SCRIPT_URL_KEY);
       localStorage.removeItem('fastfood_custom_script_url');
     } else {
-      localStorage.setItem('fastfood_custom_script_url', url.trim());
+      localStorage.setItem(CUSTOM_SCRIPT_URL_KEY, url.trim());
     }
+    window.dispatchEvent(new CustomEvent(CONFIG_CHANGED_EVENT));
+  }
+}
+
+export function getSheetViewUrl(): string {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(CUSTOM_SHEET_VIEW_URL_KEY) || '';
+  }
+  return '';
+}
+
+export function setSheetViewUrl(url: string) {
+  if (typeof window !== 'undefined') {
+    if (!url.trim()) {
+      localStorage.removeItem(CUSTOM_SHEET_VIEW_URL_KEY);
+    } else {
+      localStorage.setItem(CUSTOM_SHEET_VIEW_URL_KEY, url.trim());
+    }
+    window.dispatchEvent(new CustomEvent(CONFIG_CHANGED_EVENT));
   }
 }
 
 export async function postToScript(payload: Record<string, unknown>): Promise<boolean> {
+  const scriptUrl = getScriptUrl();
+  if (!scriptUrl) return false;
   try {
-    await fetch(getScriptUrl(), {
+    await fetch(scriptUrl, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain' },
@@ -527,6 +620,24 @@ export function syncTableOrder(order: Order): Promise<boolean> {
 
 export function syncDeleteOrder(orderId: string): Promise<boolean> {
   return postToScript({ type: 'delete_order', orderId });
+}
+
+export function syncExpense(exp: Expense): Promise<boolean> {
+  return postToScript({
+    type: 'expense',
+    expenseId: exp.id,
+    time: exp.time,
+    staff: exp.staff,
+    shift: exp.shift,
+    category: exp.category,
+    title: exp.title,
+    amount: exp.amount,
+    paymentMethod: exp.paymentMethod
+  });
+}
+
+export function syncDeleteExpense(expenseId: string): Promise<boolean> {
+  return postToScript({ type: 'delete_expense', expenseId });
 }
 
 export function getShift(): Shift {
@@ -595,6 +706,23 @@ export function findMenuPrice(name: string): number {
   found = MENU.find(m => cleanStr(m.name).includes(cleanTarget) || cleanTarget.includes(cleanStr(m.name)));
   if (found) return found.price;
   return 0;
+}
+
+export function findMenuCost(name: string, fallbackPrice: number = 0): number {
+  if (!name) return Math.round(fallbackPrice * 0.38);
+  const cleanTarget = cleanStr(name);
+  let found = MENU.find(m => cleanStr(m.name) === cleanTarget);
+  if (found && found.cost) return found.cost;
+  found = MENU.find(m => cleanStr(m.name).includes(cleanTarget) || cleanTarget.includes(cleanStr(m.name)));
+  if (found && found.cost) return found.cost;
+  return Math.round(fallbackPrice * 0.38);
+}
+
+export function computeOrderCost(order: Order): number {
+  if (Array.isArray(order.lines) && order.lines.length > 0) {
+    return order.lines.reduce((sum, l) => sum + findMenuCost(l.name, l.price) * (l.qty || 1), 0);
+  }
+  return Math.round((order.total || 0) * 0.38);
 }
 
 export function parseOrderItems(rawInput?: string, orderTotal?: number): OrderLine[] {

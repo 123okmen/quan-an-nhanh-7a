@@ -2,14 +2,17 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 import LoginGate from '../components/LoginGate';
 import MenuItemCard from '../components/MenuItemCard';
+import GoogleSheetSyncPanel from '../components/GoogleSheetSyncPanel';
 import {
-  MENU, CATEGORIES, STORE_SCHEDULE,
+  MENU, CATEGORIES, STORE_SCHEDULE, EXPENSE_CATEGORIES,
   getOrders, saveOrder, deleteOrder, clearAllOrders, syncOrder, syncDeleteOrder,
+  getExpenses, saveExpense, deleteExpense, syncExpense, syncDeleteExpense, newExpenseId,
   getShift, shiftLabel, newOrderId, localDateKey, fmtVND,
-  getScriptUrl, findMenuPrice, parseOrderItems,
-  normalizePaymentMethod, normalizeShift, parseOrderDate, ORDERS_CHANGED_EVENT
+  getScriptUrl, findMenuPrice, parseOrderItems, setSheetViewUrl,
+  normalizePaymentMethod, normalizeShift, parseOrderDate,
+  ORDERS_CHANGED_EVENT, EXPENSES_CHANGED_EVENT
 } from '../lib/store';
-import type { Order, OrderLine, Shift } from '../lib/store';
+import type { Order, OrderLine, Shift, Expense, ExpenseCategory } from '../lib/store';
 import { printReceipt, isComputerMode } from '../utils/print';
 
 export default function StaffPage() {
@@ -23,7 +26,7 @@ export default function StaffPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [tab, setTab] = useState<'pos' | 'shift' | 'schedule' | 'off' | 'report'>('pos');
+  const [tab, setTab] = useState<'pos' | 'expense' | 'shift' | 'schedule' | 'off' | 'report'>('pos');
   const [offData, setOffData] = useState({ date: localDateKey(), shift: 'sang', reason: '' });
   const [staff, setStaff] = useState('');
   const [shift, setShift] = useState<Shift>(getShift());
@@ -34,6 +37,11 @@ export default function StaffPage() {
   const [reportData, setReportData] = useState({ doanhThu: '', tienMat: '', tienChuyenKhoan: '', ghiChu: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>(() => getExpenses());
+  const [expCategory, setExpCategory] = useState<ExpenseCategory>(EXPENSE_CATEGORIES[0]);
+  const [expTitle, setExpTitle] = useState('');
+  const [expAmount, setExpAmount] = useState('');
+  const [expPayment, setExpPayment] = useState<'tienmat' | 'chuyenkhoan'>('tienmat');
   const [paymentMethod, setPaymentMethod] = useState<"tienmat" | "chuyenkhoan" | "app">("tienmat");
   const [orderType, setOrderType] = useState<"tai-quan" | "mang-ve">("tai-quan");
 
@@ -92,9 +100,14 @@ export default function StaffPage() {
   };
 
   const fetchSystemData = async () => {
+    const scriptUrl = getScriptUrl();
+    if (!scriptUrl) return;
     try {
-      const r = await fetch(getScriptUrl() + '?action=data', { headers: { 'Accept': 'application/json' } });
+      const r = await fetch(scriptUrl + '?action=data', { headers: { 'Accept': 'application/json' } });
       const d = await r.json();
+      if (d && d.sheetUrl) {
+        setSheetViewUrl(d.sheetUrl);
+      }
       if (d && d.kpi) {
         setApiRevenue(d.kpi.doanhThu || 0);
         setApiOrders(d.kpi.soDon || 0);
@@ -125,12 +138,17 @@ export default function StaffPage() {
   };
 
   useEffect(() => {
-    // Load local orders for shift calculation using shared store
+    // Load local orders & expenses for shift calculation using shared store
     setRecentOrders(getOrders());
+    setExpenses(getExpenses());
 
-    const handleSync = () => setRecentOrders(getOrders());
+    const handleSync = () => {
+      setRecentOrders(getOrders());
+      setExpenses(getExpenses());
+    };
     window.addEventListener('storage', handleSync);
     window.addEventListener(ORDERS_CHANGED_EVENT, handleSync);
+    window.addEventListener(EXPENSES_CHANGED_EVENT, handleSync);
 
     fetchSystemData();
     const t = setInterval(fetchSystemData, 15000);
@@ -138,6 +156,7 @@ export default function StaffPage() {
       clearInterval(t);
       window.removeEventListener('storage', handleSync);
       window.removeEventListener(ORDERS_CHANGED_EVENT, handleSync);
+      window.removeEventListener(EXPENSES_CHANGED_EVENT, handleSync);
     };
   }, []);
 
@@ -445,22 +464,74 @@ export default function StaffPage() {
       transfer: reportData.tienChuyenKhoan,
       note: reportData.ghiChu
     });
-    alert(ok ? 'Báo cáo ca đã được gửi thành công lên Google Sheet & Telegram!' : 'Có lỗi xảy ra khi gửi báo cáo!');
+    alert(ok ? 'Báo cáo ca đã được gửi thành công lên Google Sheet & Telegram!' : 'Đã lưu báo cáo kết ca!');
     if (ok) setReportData({ doanhThu: '', tienMat: '', tienChuyenKhoan: '', ghiChu: '' });
     setIsSubmitting(false);
   };
 
+  const handleSaveExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!staff.trim()) return alert('Vui lòng nhập tên người chi (Nhân viên / Quản lý) ở ô phía trên!');
+    const amt = parseInt(expAmount.replace(/\D/g, ''), 10) || 0;
+    if (amt <= 0) return alert('Vui lòng nhập số tiền chi hợp lệ!');
+    if (!expTitle.trim()) return alert('Vui lòng nhập nội dung chi (VD: Mua 5kg đùi gà + 2kg bò)!');
+
+    setIsSubmitting(true);
+    const newExp: Expense = {
+      id: newExpenseId(),
+      time: new Date().toISOString(),
+      staff: staff.trim(),
+      shift,
+      category: expCategory,
+      title: expTitle.trim(),
+      amount: amt,
+      paymentMethod: expPayment,
+      synced: false
+    };
+
+    const ok = await syncExpense(newExp);
+    newExp.synced = ok;
+    saveExpense(newExp);
+    setExpenses(getExpenses());
+    setExpTitle('');
+    setExpAmount('');
+    setToast(ok ? '✅ ĐÃ LƯU & ĐỒNG BỘ PHIẾU CHI LÊN TRANG TÍNH!' : '💾 ĐÃ LƯU PHIẾU CHI TRÊN MÁY!');
+    setTimeout(() => setToast(''), 4000);
+    if (ok) setTimeout(fetchSystemData, 1500);
+    setIsSubmitting(false);
+  };
+
+  const handleDeleteExpenseItem = async (id: string) => {
+    if (!window.confirm('Bạn có chắc muốn xóa khoản chi #' + id + ' này không?')) return;
+    deleteExpense(id);
+    setExpenses(getExpenses());
+    await syncDeleteExpense(id);
+    setToast('🗑️ ĐÃ XÓA KHOẢN CHI #' + id);
+    setTimeout(() => setToast(''), 3000);
+  };
+
+  const todayExpensesTotal = useMemo(() => {
+    const tKey = localDateKey();
+    return expenses
+      .filter(ex => localDateKey(parseOrderDate(ex.time)) === tKey)
+      .reduce((sum, ex) => sum + (ex.amount || 0), 0);
+  }, [expenses]);
+
   return (
     <LoginGate expectedPassword="khoinghiep123" storageKey="auth_staff" title="Khu Vực Nhân Viên">
       <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', color: 'var(--text-primary)' }}>
-        <h1 style={{ color: '#10b981', textAlign: 'center', marginBottom: '0.5rem' }}>🧑‍🍳 Web Nhân Viên</h1>
-        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-          Chấm công · Nhập món · Báo cáo cuối ca · Lịch làm việc
+        <h1 style={{ color: '#10b981', textAlign: 'center', marginBottom: '0.5rem' }}>🧑‍🍳 Web Nhân Viên & Nhập Liệu</h1>
+        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+          Nhập món POS · Nhập chi phí đi chợ · Chấm công · Báo cáo cuối ca · Đồng bộ Google Trang Tính
         </p>
+
+        {/* Thanh cấu hình & mở nhanh Google Trang Tính */}
+        <GoogleSheetSyncPanel onSynced={fetchSystemData} />
 
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
           {([
-            ['pos', '🧾 Nhập Món'],
+            ['pos', '🧾 Nhập Món (POS)'],
+            ['expense', '💸 Nhập Chi Phí / Đi Chợ'],
             ['shift', '⏱️ Chấm Công'],
             ['report', '📋 Báo Cáo Cuối Ca'],
             ['off', '🏖️ Nghỉ Ca'],
@@ -491,9 +562,14 @@ export default function StaffPage() {
           </div>
           <div style={{ textAlign: 'right', display: 'flex', gap: '1.2rem', alignItems: 'center', marginLeft: 'auto', flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Hôm nay</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Doanh thu hôm nay</div>
               <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10b981' }}>{fmtVND(apiRevenue)}</div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{apiOrders} đơn</div>
+            </div>
+            <div style={{ borderLeft: '1px solid rgba(255,255,255,0.15)', paddingLeft: '1.2rem' }}>
+              <div style={{ fontSize: '0.75rem', color: '#f87171' }}>Chi đi chợ hôm nay</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#f87171' }}>{fmtVND(todayExpensesTotal)}</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{expenses.length} phiếu chi</div>
             </div>
             <div style={{ borderLeft: '1px solid rgba(255,255,255,0.15)', paddingLeft: '1.2rem' }}>
               <div style={{ fontSize: '0.75rem', color: '#38bdf8' }}>Tháng này</div>
@@ -502,6 +578,227 @@ export default function StaffPage() {
             </div>
           </div>
         </div>
+
+        {tab === 'expense' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem' }}>
+            <div className="glass-panel" style={{ padding: '1.5rem' }}>
+              <h2 style={{ marginTop: 0, color: '#f87171' }}>💸 Nhập Chi Phí Đi Chợ & Vận Hành</h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                Mọi khoản chi nguyên liệu, bao bì, gas, điện... nhập tại đây sẽ tự động ghi vào tab <strong>"Chi Phí & Nhập Hàng"</strong> trên Google Trang Tính và khấu trừ vào Báo Cáo Lợi Nhuận Thực Tế.
+              </p>
+
+              <form onSubmit={handleSaveExpense} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '6px' }}>Nhóm hạng mục chi *</label>
+                  <select
+                    className="input-field"
+                    style={{ width: '100%', padding: '0.65rem 1rem', background: 'rgba(255,255,255,0.1)', color: '#fff' }}
+                    value={expCategory}
+                    onChange={e => setExpCategory(e.target.value as ExpenseCategory)}
+                  >
+                    {EXPENSE_CATEGORIES.map(c => (
+                      <option key={c} value={c} style={{ background: '#1e293b' }}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '6px' }}>Chọn nhanh nội dung thường chi:</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                    {[
+                      'Nhập đùi gà góc tư + ức gà',
+                      'Thịt bò + Sườn non + Tôm mực',
+                      'Vỏ bánh bao + Burger + Sandwich',
+                      'Xúc xích + Chả tôm + Phô mai',
+                      'Gạo + Mì vắt + Hủ tiếu + Trứng',
+                      'Dầu ăn 5L + Nước mắm + Tương ớt',
+                      'Rau cải + Xà lách + Dưa leo + Hành',
+                      'Hộp cơm 3 ngăn + Túi giấy BBK',
+                      'Đổi bình Gas 12kg'
+                    ].map(chip => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => setExpTitle(chip)}
+                        style={{
+                          fontSize: '0.76rem',
+                          padding: '4px 9px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          background: expTitle === chip ? '#ef4444' : 'rgba(255,255,255,0.06)',
+                          color: '#fff',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        + {chip}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    className="input-field"
+                    placeholder="Chi tiết khoản chi (VD: Mua 5kg đùi gà + 2kg bò lúc lắc)..."
+                    value={expTitle}
+                    onChange={e => setExpTitle(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '6px' }}>Số tiền chi (VNĐ) *</label>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                    {[50000, 100000, 150000, 200000, 300000, 500000, 1000000].map(preset => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setExpAmount(String(preset))}
+                        style={{
+                          fontSize: '0.78rem',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(248, 113, 113, 0.4)',
+                          background: 'rgba(248, 113, 113, 0.12)',
+                          color: '#fca5a5',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {fmtVND(preset)}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    className="input-field"
+                    placeholder="Nhập số tiền (VD: 350000)..."
+                    value={expAmount}
+                    onChange={e => setExpAmount(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '6px' }}>Nguồn tiền chi</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setExpPayment('tienmat')}
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: expPayment === 'tienmat' ? '2px solid #10b981' : '1px solid gray',
+                        background: expPayment === 'tienmat' ? 'rgba(16,185,129,0.2)' : 'transparent',
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      💵 Chi Tiền Mặt Tại Quầy
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setExpPayment('chuyenkhoan')}
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: expPayment === 'chuyenkhoan' ? '2px solid #3498db' : '1px solid gray',
+                        background: expPayment === 'chuyenkhoan' ? 'rgba(52,152,219,0.2)' : 'transparent',
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      💳 Chuyển Khoản Ngân Hàng
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="btn-primary"
+                  style={{
+                    background: 'linear-gradient(135deg, #ef4444, #b91c1c)',
+                    padding: '0.85rem',
+                    fontSize: '1rem',
+                    fontWeight: 800
+                  }}
+                >
+                  {isSubmitting ? '⏳ Đang lưu...' : '💾 Lưu Phiếu Chi & Đồng Bộ Google Sheet'}
+                </button>
+              </form>
+            </div>
+
+            <div className="glass-panel" style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h3 style={{ margin: 0, color: '#fbbf24' }}>📒 Sổ Chi Phí Đi Chợ Gần Đây</h3>
+                <span style={{ fontWeight: 800, color: '#f87171', fontSize: '0.95rem' }}>
+                  Hôm nay: {fmtVND(todayExpensesTotal)}
+                </span>
+              </div>
+
+              {expenses.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem 0' }}>
+                  Chưa có phiếu chi nào. Hãy nhập các khoản đi chợ / mua nguyên liệu đầu ca ở khung bên trái.
+                </p>
+              ) : (
+                <div style={{ overflowX: 'auto', maxHeight: '480px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--glass-border)', textAlign: 'left' }}>
+                        <th style={{ padding: '8px' }}>Ngày/Giờ</th>
+                        <th style={{ padding: '8px' }}>Nội dung & Hạng mục</th>
+                        <th style={{ padding: '8px', textAlign: 'right' }}>Số tiền</th>
+                        <th style={{ padding: '8px', textAlign: 'center' }}>Xóa</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {expenses.map(ex => {
+                        const d = parseOrderDate(ex.time);
+                        const dStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                        return (
+                          <tr key={ex.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                            <td style={{ padding: '8px', whiteSpace: 'nowrap', color: '#94a3b8' }}>
+                              <div>{dStr}</div>
+                              <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>{ex.staff}</div>
+                            </td>
+                            <td style={{ padding: '8px' }}>
+                              <div style={{ fontWeight: 700, color: '#f8fafc' }}>{ex.title}</div>
+                              <div style={{ fontSize: '0.75rem', color: '#f59e0b' }}>{ex.category}</div>
+                            </td>
+                            <td style={{ padding: '8px', textAlign: 'right', fontWeight: 800, color: '#f87171', whiteSpace: 'nowrap' }}>
+                              -{fmtVND(ex.amount)}
+                              <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                                {ex.paymentMethod === 'chuyenkhoan' ? '💳 CK' : '💵 TM'}
+                              </div>
+                            </td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteExpenseItem(ex.id)}
+                                style={{
+                                  background: 'rgba(239,68,68,0.2)',
+                                  color: '#fca5a5',
+                                  border: '1px solid #ef4444',
+                                  borderRadius: '6px',
+                                  padding: '3px 8px',
+                                  cursor: 'pointer',
+                                  fontSize: '0.75rem'
+                                }}
+                              >
+                                🗑️
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {tab === 'pos' && (<>
 

@@ -1,19 +1,24 @@
 import { useEffect, useState, useMemo } from 'react';
 import LoginGate from '../components/LoginGate';
+import GoogleSheetSyncPanel from '../components/GoogleSheetSyncPanel';
 import {
   getOrders,
+  getExpenses,
   localDateKey,
   fmtVND,
   ORDERS_CHANGED_EVENT,
+  EXPENSES_CHANGED_EVENT,
   parseOrderDate,
   getScriptUrl,
+  setSheetViewUrl,
   parseOrderItems,
   normalizePaymentMethod,
   normalizeShift,
   isOrderFromOpening,
+  computeOrderCost,
   OFFICIAL_OPENING_DATE
 } from '../lib/store';
-import type { Order, Shift } from '../lib/store';
+import type { Order, Shift, Expense } from '../lib/store';
 import './PlannerPage.css';
 
 interface DailyStat {
@@ -30,7 +35,8 @@ interface DailyStat {
 
 export default function PlannerPage() {
   const [orders, setOrders] = useState<Order[]>(() => getOrders());
-  const [activeTab, setActiveTab] = useState<'today' | 'week' | 'month' | 'orders'>('today');
+  const [expenses, setExpenses] = useState<Expense[]>(() => getExpenses());
+  const [activeTab, setActiveTab] = useState<'today' | 'week' | 'month' | 'expenses' | 'orders'>('today');
   const [lastSyncTime, setLastSyncTime] = useState<string>(() => new Date().toLocaleTimeString('vi-VN'));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [apiData, setApiData] = useState<any>(null);
@@ -48,14 +54,21 @@ export default function PlannerPage() {
   const refreshAllData = async () => {
     setIsRefreshing(true);
     setOrders(getOrders());
-    try {
-      const res = await fetch(getScriptUrl() + '?action=data', { headers: { Accept: 'application/json' } });
-      const d = await res.json();
-      if (d && d.ok) {
-        setApiData(d);
+    setExpenses(getExpenses());
+    const scriptUrl = getScriptUrl();
+    if (scriptUrl) {
+      try {
+        const res = await fetch(scriptUrl + '?action=data', { headers: { Accept: 'application/json' } });
+        const d = await res.json();
+        if (d && d.ok) {
+          setApiData(d);
+          if (d.sheetUrl) {
+            setSheetViewUrl(d.sheetUrl);
+          }
+        }
+      } catch {
+        // Bỏ qua lỗi mạng Google Sheets, số liệu cục bộ vẫn hoạt động chính xác
       }
-    } catch {
-      // Bỏ qua lỗi mạng Google Sheets, số liệu cục bộ vẫn hoạt động chính xác
     }
     setLastSyncTime(new Date().toLocaleTimeString('vi-VN'));
     setIsRefreshing(false);
@@ -64,13 +77,15 @@ export default function PlannerPage() {
   useEffect(() => {
     refreshAllData();
 
-    // Lắng nghe sự kiện khi có đơn mới từ tab Nhập Món hoặc Gọi Món Tại Bàn
+    // Lắng nghe sự kiện khi có đơn mới hoặc phiếu chi mới
     const handleOrderChange = () => {
       setOrders(getOrders());
+      setExpenses(getExpenses());
       setLastSyncTime(new Date().toLocaleTimeString('vi-VN'));
     };
 
     window.addEventListener(ORDERS_CHANGED_EVENT, handleOrderChange);
+    window.addEventListener(EXPENSES_CHANGED_EVENT, handleOrderChange);
     window.addEventListener('storage', handleOrderChange);
     window.addEventListener('focus', handleOrderChange);
 
@@ -80,6 +95,7 @@ export default function PlannerPage() {
     return () => {
       clearInterval(interval);
       window.removeEventListener(ORDERS_CHANGED_EVENT, handleOrderChange);
+      window.removeEventListener(EXPENSES_CHANGED_EVENT, handleOrderChange);
       window.removeEventListener('storage', handleOrderChange);
       window.removeEventListener('focus', handleOrderChange);
     };
@@ -89,7 +105,6 @@ export default function PlannerPage() {
   // GỘP ĐƠN LOCAL VÀ ĐƠN TỪ ĐIỆN THOẠI (GOOGLE SHEETS)
   // ----------------------------------------------------
   const allMergedOrders = useMemo(() => {
-    // 1. Chỉ lấy đơn từ ngày khai trương 16/10/2026, loại bỏ toàn bộ đơn test
     const local = orders.filter(o => isOrderFromOpening(o.time, o.id));
 
     if (apiData && Array.isArray(apiData.donHang)) {
@@ -100,7 +115,6 @@ export default function PlannerPage() {
           const timeStr = ao.time || '00:00:00';
           const localTimeStr = `${ao.date} ${timeStr}`;
 
-          // Lọc bỏ triệt để đơn test và đơn trước ngày khai trương 16/10/2026
           if (!isOrderFromOpening(localTimeStr, ao.id)) return;
 
           local.push({
@@ -120,6 +134,31 @@ export default function PlannerPage() {
     return local;
   }, [orders, apiData]);
 
+  // GỘP CHI PHÍ LOCAL & GOOGLE SHEETS
+  const allMergedExpenses = useMemo(() => {
+    const local = [...expenses];
+    if (apiData && Array.isArray(apiData.chiPhi)) {
+      const localIds = new Set(local.map(e => e.id));
+      apiData.chiPhi.forEach((ae: any) => {
+        if (ae.id && !localIds.has(ae.id) && ae.date) {
+          const timeStr = ae.time || '00:00:00';
+          local.push({
+            id: ae.id,
+            time: `${ae.date} ${timeStr}`,
+            staff: ae.staff || 'Quản lý',
+            shift: normalizeShift(ae.shift),
+            category: ae.category || 'Nhập nguyên liệu',
+            title: ae.title || '',
+            amount: Number(ae.amount) || 0,
+            paymentMethod: normalizePaymentMethod(ae.paymentMethod),
+            synced: true
+          });
+        }
+      });
+    }
+    return local;
+  }, [expenses, apiData]);
+
   // ----------------------------------------------------
   // 1. THANH TRÊN: TÍNH DOANH THU TRONG NGÀY (HÔM NAY)
   // ----------------------------------------------------
@@ -132,16 +171,25 @@ export default function PlannerPage() {
     });
   }, [allMergedOrders, todayKey]);
 
+  const todayExpenses = useMemo(() => {
+    return allMergedExpenses.filter(e => {
+      const expDate = parseOrderDate(e.time);
+      return localDateKey(expDate) === todayKey;
+    });
+  }, [allMergedExpenses, todayKey]);
+
   const todayMetrics = useMemo(() => {
     let revenue = 0;
     let cash = 0;
     let bank = 0;
     let app = 0;
+    let cogs = 0;
     let orderCount = todayOrders.length;
 
     for (const o of todayOrders) {
       const total = o.total || 0;
       revenue += total;
+      cogs += computeOrderCost(o);
       const pm = normalizePaymentMethod(o.paymentMethod);
       if (pm === 'chuyenkhoan') {
         bank += total;
@@ -169,7 +217,7 @@ export default function PlannerPage() {
       }
     }
 
-    // Nếu Google Sheets báo cáo KPI cao hơn local, ưu tiên dùng KPI của Google Sheets (không ghi đè 0 vào bank)
+    // Nếu Google Sheets báo cáo KPI cao hơn local, ưu tiên dùng KPI của Google Sheets
     if (apiData && apiData.kpi) {
       if ((apiData.kpi.doanhThu || 0) > revenue) {
         revenue = apiData.kpi.doanhThu || 0;
@@ -180,17 +228,24 @@ export default function PlannerPage() {
       }
     }
 
-    // Tiền mặt chuẩn xác là phần còn lại sau khi trừ chuyển khoản & app
     cash = Math.max(0, revenue - bank - app);
+    const localExpSum = todayExpenses.reduce((s, e) => s + (e.amount || 0), 0);
+    const expenseToday = Math.max(localExpSum, apiData?.kpi?.chiPhiHomNay || 0);
+    const grossProfit = revenue - cogs;
+    const netCashflow = revenue - expenseToday;
 
     return {
       revenue,
       orderCount,
       cash,
       bank,
-      app
+      app,
+      cogs,
+      grossProfit,
+      expenseToday,
+      netCashflow
     };
-  }, [todayOrders, apiData]);
+  }, [todayOrders, todayExpenses, apiData]);
 
   // Phân bổ theo 3 ca trong ngày
   const shiftBreakdown = useMemo(() => {
@@ -474,6 +529,10 @@ export default function PlannerPage() {
     const avgTicket = monthOrders > 0 ? Math.round(monthRevenue / monthOrders) : 0;
     const topDishes = Array.from(dishSalesMap.values()).sort((a, b) => b.qty - a.qty).slice(0, 6);
 
+    const monthExpenses = allMergedExpenses
+      .filter(e => localDateKey(parseOrderDate(e.time)).startsWith(selectedMonth))
+      .reduce((s, e) => s + (e.amount || 0), 0);
+
     return {
       monthLabel: `Tháng ${month + 1}/${year}`,
       daysInMonth,
@@ -482,13 +541,44 @@ export default function PlannerPage() {
       monthCash,
       monthBank,
       monthApp,
+      monthExpenses: Math.max(monthExpenses, apiData?.kpi?.chiPhiThang || 0),
       avgDailyRevenue,
       avgTicket,
       weeksBreakdown,
       topDishes,
       days: days.filter(d => d.total > 0 || d.orders > 0 || d.isToday)
     };
-  }, [orders, selectedMonth, todayKey, apiData]);
+  }, [orders, allMergedExpenses, selectedMonth, todayKey, apiData]);
+
+  const exportReportToCSV = () => {
+    const BOM = '\uFEFF';
+    const lines: string[] = [];
+    lines.push('BÁO CÁO ĐƠN HÀNG & CHI PHÍ - FOOD STATION 7A (PHƯỚC THIỆN)');
+    lines.push(`Ngày xuất báo cáo:,${new Date().toLocaleString('vi-VN')}`);
+    lines.push('');
+    lines.push('--- I. DANH SÁCH ĐƠN HÀNG ---');
+    lines.push('Mã Đơn,Thời Gian,Nhân Viên/Bàn,Ca,Chi Tiết Món,Tổng Tiền (VNĐ),Giá Vốn Ước Tính (VNĐ),Lãi Gộp (VNĐ),Thanh Toán');
+    allMergedOrders.forEach(o => {
+      const itemsStr = (o.lines || []).map(l => `${l.name} x${l.qty}`).join(' + ').replace(/,/g, ';');
+      const cost = computeOrderCost(o);
+      const profit = (o.total || 0) - cost;
+      lines.push(`${o.id},"${o.time}","${o.staff || ''}",${o.shift},"${itemsStr}",${o.total || 0},${cost},${profit},${o.paymentMethod || 'tienmat'}`);
+    });
+    lines.push('');
+    lines.push('--- II. SỔ CHI PHÍ ĐI CHỢ & VẬN HÀNH ---');
+    lines.push('Mã Phiếu Chi,Thời Gian,Người Chi,Ca,Hạng Mục,Nội Dung Chi Tiết,Số Tiền Chi (VNĐ),Hình Thức');
+    allMergedExpenses.forEach(ex => {
+      lines.push(`${ex.id},"${ex.time}","${ex.staff}",${ex.shift},"${ex.category}","${(ex.title || '').replace(/,/g, ';')}",${ex.amount},${ex.paymentMethod}`);
+    });
+
+    const blob = new Blob([BOM + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Bao_Cao_Quan_An_Nhanh_7A_${localDateKey()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const isShareholderMode = 
     typeof window !== 'undefined' && (
@@ -508,7 +598,7 @@ export default function PlannerPage() {
         <header className="rpt-header">
           <div>
             <h1 className="rpt-title">
-              <span>📊 Báo Cáo Doanh Thu Real-Time</span>
+              <span>📊 Báo Cáo Doanh Thu & Lợi Nhuận Real-Time</span>
             </h1>
             <p className="rpt-subtitle">
               Cơm Chiên · Mì Xào · Bánh Bao Kẹp · FastFood • <strong>Số 2 Đường 7A, KP. Phước Thiện, P. Long Bình, TP. Thủ Đức</strong>
@@ -531,20 +621,32 @@ export default function PlannerPage() {
               🔄 {isRefreshing ? 'Đang tải...' : 'Làm mới'}
             </button>
 
+            <button
+              className="rpt-btn-refresh"
+              onClick={exportReportToCSV}
+              style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#93c5fd', borderColor: '#3b82f6' }}
+              title="Xuất toàn bộ đơn hàng & chi phí ra file Excel CSV"
+            >
+              📥 Xuất Báo Cáo (.CSV)
+            </button>
+
             {!isShareholderMode && (
               <button 
                 className="rpt-btn-refresh"
                 onClick={() => { window.location.hash = '#/staff'; }}
                 style={{ background: '#10b981', color: '#0f172a', borderColor: '#10b981' }}
               >
-                ➕ Tab Nhập Món
+                ➕ Tab Nhập Món / Chi Phí
               </button>
             )}
           </div>
         </header>
 
+        {/* Thanh Liên Kết & Khởi Tạo Google Trang Tính Mới */}
+        <GoogleSheetSyncPanel onSynced={refreshAllData} />
+
         {/* ======================================================== */}
-        {/* THANH TRÊN - HIỂN THỊ DOANH THU, SỐ ĐƠN, TIỀN MẶT, CHUYỂN KHOẢN TRONG NGÀY */}
+        {/* THANH TRÊN - HIỂN THỊ DOANH THU, SỐ ĐƠN, TIỀN MẶT, CHUYỂN KHOẢN, CHI PHÍ & LỢI NHUẬN */}
         {/* ======================================================== */}
         <section className="rpt-top-bar" aria-label="Thanh chỉ số doanh thu hôm nay">
           {/* Card 1: Doanh thu trong ngày */}
@@ -557,11 +659,25 @@ export default function PlannerPage() {
               {fmtVND(todayMetrics.revenue)}
             </div>
             <div className="rpt-card-sub">
-              <span>Thực thu trực tiếp từ đơn hàng</span>
+              <span>Lãi gộp định mức: <strong>{fmtVND(todayMetrics.grossProfit)}</strong></span>
             </div>
           </div>
 
-          {/* Card 2: Doanh thu trong tháng */}
+          {/* Card 2: Chi phí & Lợi nhuận dòng tiền hôm nay */}
+          <div className="rpt-card" style={{ borderColor: 'rgba(16, 185, 129, 0.4)', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(15, 23, 42, 0.85))' }}>
+            <div className="rpt-card-label">
+              <span>✨ Thực Thu (Thu − Chi)</span>
+              <span style={{ color: '#f87171' }}>Chi: -{fmtVND(todayMetrics.expenseToday)}</span>
+            </div>
+            <div className="rpt-card-value" style={{ color: todayMetrics.netCashflow >= 0 ? '#34d399' : '#f87171' }}>
+              {fmtVND(todayMetrics.netCashflow)}
+            </div>
+            <div className="rpt-card-sub">
+              <span>Doanh thu trừ chi đi chợ hôm nay</span>
+            </div>
+          </div>
+
+          {/* Card 3: Doanh thu trong tháng */}
           <div className="rpt-card rpt-card-month">
             <div className="rpt-card-label">
               <span>📅 Doanh Thu Trong Tháng</span>
@@ -571,11 +687,11 @@ export default function PlannerPage() {
               {fmtVND(Math.max(monthData.monthRevenue, apiData?.kpi?.doanhThuThang || 0))}
             </div>
             <div className="rpt-card-sub">
-              <span>{Math.max(monthData.monthOrders, apiData?.kpi?.soDonThang || 0)} đơn toàn tháng</span>
+              <span>{Math.max(monthData.monthOrders, apiData?.kpi?.soDonThang || 0)} đơn • Chi: {fmtVND(monthData.monthExpenses)}</span>
             </div>
           </div>
 
-          {/* Card 3: Số đơn hàng trong ngày */}
+          {/* Card 4: Số đơn hàng trong ngày */}
           <div className="rpt-card rpt-card-orders">
             <div className="rpt-card-label">
               <span>📦 Số Đơn Hàng</span>
@@ -589,7 +705,7 @@ export default function PlannerPage() {
             </div>
           </div>
 
-          {/* Card 3: Tiền mặt trong ngày */}
+          {/* Card 5: Tiền mặt trong ngày */}
           <div className="rpt-card rpt-card-cash">
             <div className="rpt-card-label">
               <span>💵 Tiền Mặt</span>
@@ -603,7 +719,7 @@ export default function PlannerPage() {
             </div>
           </div>
 
-          {/* Card 4: Tiền chuyển khoản trong ngày */}
+          {/* Card 6: Tiền chuyển khoản trong ngày */}
           <div className="rpt-card rpt-card-bank">
             <div className="rpt-card-label">
               <span>💳 Tiền Chuyển Khoản</span>
@@ -627,7 +743,7 @@ export default function PlannerPage() {
         )}
 
         {/* ======================================================== */}
-        {/* THANH ĐIỀU HƯỚNG TAB: HÔM NAY | BÁO CÁO TUẦN | BÁO CÁO THÁNG | CHI TIẾT ĐƠN */}
+        {/* THANH ĐIỀU HƯỚNG TAB: HÔM NAY | BÁO CÁO TUẦN | BÁO CÁO THÁNG | SỔ CHI PHÍ | CHI TIẾT ĐƠN */}
         {/* ======================================================== */}
         <nav className="rpt-nav-tabs">
           <button 
@@ -647,6 +763,12 @@ export default function PlannerPage() {
             onClick={() => setActiveTab('month')}
           >
             📈 Báo Cáo Tháng
+          </button>
+          <button 
+            className={`rpt-tab-btn ${activeTab === 'expenses' ? 'active' : ''}`}
+            onClick={() => setActiveTab('expenses')}
+          >
+            💸 Sổ Chi Phí & Lợi Nhuận ({allMergedExpenses.length})
           </button>
           <button 
             className={`rpt-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
@@ -1043,7 +1165,112 @@ export default function PlannerPage() {
         )}
 
         {/* ======================================================== */}
-        {/* NỘI DUNG TAB 4: BẢNG KÊ ĐƠN HÀNG HÔM NAY */}
+        {/* NỘI DUNG TAB CHI PHÍ & LỢI NHUẬN */}
+        {/* ======================================================== */}
+        {activeTab === 'expenses' && (
+          <div className="rpt-panel">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+              <h2 className="rpt-panel-title" style={{ margin: 0 }}>
+                <span>💸 Sổ Chi Phí Đi Chợ & Phân Tích Lợi Nhuận Thực Tế</span>
+              </h2>
+              {!isShareholderMode && (
+                <button
+                  className="rpt-btn-refresh"
+                  onClick={() => { window.location.hash = '#/staff'; }}
+                  style={{ background: '#ef4444', color: '#fff', borderColor: '#ef4444' }}
+                >
+                  ➕ Nhập Phiếu Chi Mới (Đi Chợ)
+                </button>
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ background: 'rgba(15, 23, 42, 0.65)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase' }}>Doanh Thu Hôm Nay</div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#10b981', marginTop: '0.3rem' }}>{fmtVND(todayMetrics.revenue)}</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Giá vốn định mức (~38%): {fmtVND(todayMetrics.cogs)}</div>
+              </div>
+
+              <div style={{ background: 'rgba(15, 23, 42, 0.65)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(248,113,113,0.3)' }}>
+                <div style={{ fontSize: '0.75rem', color: '#fca5a5', textTransform: 'uppercase' }}>Chi Đi Chợ Hôm Nay</div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#f87171', marginTop: '0.3rem' }}>-{fmtVND(todayMetrics.expenseToday)}</div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>{todayExpenses.length} phiếu chi trong ngày</div>
+              </div>
+
+              <div style={{ background: 'rgba(15, 23, 42, 0.65)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(52,211,153,0.35)' }}>
+                <div style={{ fontSize: '0.75rem', color: '#6ee7b7', textTransform: 'uppercase' }}>Thực Thu Hôm Nay (Thu − Chi)</div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 900, color: todayMetrics.netCashflow >= 0 ? '#34d399' : '#f87171', marginTop: '0.3rem' }}>
+                  {fmtVND(todayMetrics.netCashflow)}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>Lãi gộp định mức món: {fmtVND(todayMetrics.grossProfit)}</div>
+              </div>
+
+              <div style={{ background: 'rgba(15, 23, 42, 0.65)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(251,191,36,0.3)' }}>
+                <div style={{ fontSize: '0.75rem', color: '#fde047', textTransform: 'uppercase' }}>Lợi Nhuận Tạm Tính ({monthData.monthLabel})</div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#fbbf24', marginTop: '0.3rem' }}>
+                  {fmtVND(Math.max(monthData.monthRevenue, apiData?.kpi?.doanhThuThang || 0) - monthData.monthExpenses)}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>Tổng chi tháng: -{fmtVND(monthData.monthExpenses)}</div>
+              </div>
+            </div>
+
+            {allMergedExpenses.length === 0 ? (
+              <div className="rpt-empty">
+                <div className="rpt-empty-icon">📒</div>
+                <div className="rpt-empty-title">Chưa có phiếu chi nguyên liệu / vận hành nào</div>
+                <p>Nhân viên hoặc quản lý có thể nhập chi phí đi chợ hàng ngày tại mục <strong>🧑‍🍳 Nhân Viên → 💸 Nhập Chi Phí / Đi Chợ</strong>.</p>
+              </div>
+            ) : (
+              <div className="rpt-table-container">
+                <table className="rpt-table">
+                  <thead>
+                    <tr>
+                      <th>Mã Phiếu</th>
+                      <th>Thời Gian</th>
+                      <th>Người Chi</th>
+                      <th>Hạng Mục Chi</th>
+                      <th>Nội Dung Chi Tiết</th>
+                      <th style={{ textAlign: 'center' }}>Hình Thức</th>
+                      <th style={{ textAlign: 'right' }}>Số Tiền Chi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allMergedExpenses.map(ex => {
+                      const d = parseOrderDate(ex.time);
+                      const dStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                      return (
+                        <tr key={ex.id}>
+                          <td style={{ fontFamily: 'monospace', color: '#fca5a5' }}>{ex.id}</td>
+                          <td>{dStr}</td>
+                          <td><strong>{ex.staff}</strong></td>
+                          <td>
+                            <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', padding: '2px 8px', borderRadius: '6px', fontSize: '0.78rem' }}>
+                              {ex.category}
+                            </span>
+                          </td>
+                          <td>{ex.title}</td>
+                          <td style={{ textAlign: 'center' }}>
+                            {ex.paymentMethod === 'chuyenkhoan' ? (
+                              <span className="rpt-badge rpt-badge-bank">Chuyển Khoản</span>
+                            ) : (
+                              <span className="rpt-badge rpt-badge-cash">Tiền Mặt</span>
+                            )}
+                          </td>
+                          <td style={{ textAlign: 'right', fontWeight: 800, color: '#f87171' }}>
+                            -{fmtVND(ex.amount)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* NỘI DUNG TAB 5: BẢNG KÊ ĐƠN HÀNG HÔM NAY */}
         {/* ======================================================== */}
         {activeTab === 'orders' && (
           <div className="rpt-panel">

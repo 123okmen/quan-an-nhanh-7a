@@ -1188,7 +1188,7 @@ export default function PlannerPage() {
               <div style={{ background: 'rgba(15, 23, 42, 0.65)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase' }}>Doanh Thu Hôm Nay</div>
                 <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#10b981', marginTop: '0.3rem' }}>{fmtVND(todayMetrics.revenue)}</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Giá vốn định mức (~38%): {fmtVND(todayMetrics.cogs)}</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Giá vốn định mức (~54.5%): {fmtVND(todayMetrics.cogs)}</div>
               </div>
 
               <div style={{ background: 'rgba(15, 23, 42, 0.65)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(248,113,113,0.3)' }}>

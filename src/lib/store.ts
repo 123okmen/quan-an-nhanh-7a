@@ -37,12 +37,12 @@ export const CATEGORIES: CategoryInfo[] = [
 ];
 
 export const MENU: MenuItem[] = [
-  // --- 1. CƠM CHIÊN & CƠM NÓNG ---
+  // --- 1. CƠM CHIÊN & CƠM NÓNG (Giá vốn thực tế gồm: Thịt/Hải sản + Gạo + Rau/Đồ chua + Dầu/Gia vị + Hộp 3 ngăn/Muỗng) ---
   {
     id: 'com-1',
     name: 'Cơm Chiên Phủ Trứng',
     price: 25000,
-    cost: 9000,
+    cost: 13000,
     category: 'com-nong',
     badge: 'Giá Sinh Viên',
     description: 'Cơm chiên tỏi hạt vàng tơi phủ lớp trứng chiên mềm béo'
@@ -51,7 +51,7 @@ export const MENU: MenuItem[] = [
     id: 'com-2',
     name: 'Cơm Gà Xối Mỡ',
     price: 40000,
-    cost: 16500,
+    cost: 22000,
     category: 'com-nong',
     badge: 'Best Seller',
     description: 'Đùi/góc tư gà chiên xối mỡ da giòn rụm + Cơm chiên đỏ + Đồ chua'
@@ -60,7 +60,7 @@ export const MENU: MenuItem[] = [
     id: 'com-3',
     name: 'Cơm Gà Chiên Mắm Tỏi',
     price: 40000,
-    cost: 16500,
+    cost: 22000,
     category: 'com-nong',
     badge: 'Đậm Vị',
     description: 'Gà chiên giòn áo sốt mắm tỏi ớt kẹo thơm lừng'
@@ -69,7 +69,7 @@ export const MENU: MenuItem[] = [
     id: 'com-4',
     name: 'Cơm Chiên Hải Sản',
     price: 40000,
-    cost: 16000,
+    cost: 22500,
     category: 'com-nong',
     description: 'Tôm, mực tươi, rau củ hạt lựu chiên lửa lớn chuẩn vị'
   },
@@ -77,7 +77,7 @@ export const MENU: MenuItem[] = [
     id: 'com-5',
     name: 'Cơm Xào Hải Sản',
     price: 40000,
-    cost: 16000,
+    cost: 22500,
     category: 'com-nong',
     description: 'Cơm trắng dùng kèm tôm mực xào rau củ sốt dầu hào đậm đà'
   },
@@ -85,7 +85,7 @@ export const MENU: MenuItem[] = [
     id: 'com-6',
     name: 'Cơm Bò Lúc Lắc',
     price: 40000,
-    cost: 17500,
+    cost: 23000,
     category: 'com-nong',
     badge: 'Hot',
     description: 'Thịt bò thái vuông áp chảo lửa lớn cùng ớt chuông, hành tây'
@@ -94,7 +94,7 @@ export const MENU: MenuItem[] = [
     id: 'com-7',
     name: 'Cơm Bò Xào Rau Củ',
     price: 40000,
-    cost: 16500,
+    cost: 22500,
     category: 'com-nong',
     description: 'Thịt bò mềm xào cải ngọt, cà rốt, bông cải tươi giòn'
   },
@@ -102,7 +102,7 @@ export const MENU: MenuItem[] = [
     id: 'com-8',
     name: 'Cơm Sườn Chua Ngọt',
     price: 40000,
-    cost: 16500,
+    cost: 22000,
     category: 'com-nong',
     description: 'Sườn non chiên áo sốt chua ngọt đậm đà, đưa cơm'
   },
@@ -112,7 +112,7 @@ export const MENU: MenuItem[] = [
     id: 'mi-1',
     name: 'Mì Xào Hải Sản',
     price: 40000,
-    cost: 15500,
+    cost: 22000,
     category: 'mi-hu-tieu',
     badge: 'Bán Chạy',
     description: 'Mì dai xào tôm, mực tươi, cải ngọt, cà rốt áp chảo thơm lửa'
@@ -121,7 +121,7 @@ export const MENU: MenuItem[] = [
     id: 'mi-2',
     name: 'Mì Xào Bò',
     price: 40000,
-    cost: 16500,
+    cost: 22500,
     category: 'mi-hu-tieu',
     description: 'Mì xào thịt bò mềm ngọt cùng cải thìa, hành tỏi phi'
   },
@@ -129,7 +129,7 @@ export const MENU: MenuItem[] = [
     id: 'mi-3',
     name: 'Mì Giòn (Mì Xào Giòn)',
     price: 40000,
-    cost: 16000,
+    cost: 22000,
     category: 'mi-hu-tieu',
     badge: 'Đặc Biệt',
     description: 'Vắt mì chiên giòn rụm rưới sốt hải sản / bò rau củ sánh quyện'
@@ -138,7 +138,7 @@ export const MENU: MenuItem[] = [
     id: 'mi-4',
     name: 'Hủ Tiếu Xào Khô (Bò/Hải Sản)',
     price: 40000,
-    cost: 16000,
+    cost: 22000,
     category: 'mi-hu-tieu',
     description: 'Sợi hủ tiếu dai xào khô lửa lớn với giá hẹ, bò hoặc hải sản'
   },
@@ -146,7 +146,7 @@ export const MENU: MenuItem[] = [
     id: 'mi-5',
     name: 'Hủ Tiếu Xào Nước (Bò/Hải Sản)',
     price: 40000,
-    cost: 16000,
+    cost: 22000,
     category: 'mi-hu-tieu',
     description: 'Hủ tiếu áp chảo thơm khói chan sốt nước sệt đậm vị kiểu Hoa'
   },
@@ -156,7 +156,7 @@ export const MENU: MenuItem[] = [
     id: 'bbk-1',
     name: 'BBK Xúc Xích',
     price: 18000,
-    cost: 6500,
+    cost: 9500,
     category: 'banh-bao-kep',
     description: 'Vỏ bánh bao hấp mềm xốp kẹp xúc xích chiên, rau xà lách & sốt'
   },
@@ -164,7 +164,7 @@ export const MENU: MenuItem[] = [
     id: 'bbk-2',
     name: 'BBK Gà Rán',
     price: 20000,
-    cost: 7500,
+    cost: 10800,
     category: 'banh-bao-kep',
     badge: 'Best Seller',
     description: 'Bánh bao kẹp ức/phi lê gà rán giòn rụm, dưa leo, sốt tương ớt mayo'
@@ -173,7 +173,7 @@ export const MENU: MenuItem[] = [
     id: 'bbk-3',
     name: 'BBK Tôm Rán',
     price: 24000,
-    cost: 9000,
+    cost: 13000,
     category: 'banh-bao-kep',
     description: 'Bánh bao kẹp chả tôm tẩm bột chiên giòn nóng hổi'
   },
@@ -181,7 +181,7 @@ export const MENU: MenuItem[] = [
     id: 'bbk-4',
     name: 'BBK Tôm Phô Mai',
     price: 26000,
-    cost: 10500,
+    cost: 14500,
     category: 'banh-bao-kep',
     badge: 'Yêu Thích',
     description: 'Bánh bao kẹp tôm rán giòn thêm phô mai béo ngậy tan chảy'
@@ -190,7 +190,7 @@ export const MENU: MenuItem[] = [
     id: 'bbk-5',
     name: 'BBK Sườn BBQ',
     price: 25000,
-    cost: 9500,
+    cost: 13500,
     category: 'banh-bao-kep',
     description: 'Bánh bao kẹp thịt nướng sốt BBQ khói thơm lừng'
   },
@@ -200,7 +200,7 @@ export const MENU: MenuItem[] = [
     id: 'ff-1',
     name: 'Hamburger Bò / Gà Giòn Phô Mai',
     price: 28000,
-    cost: 10500,
+    cost: 15000,
     category: 'fastfood-an-vat',
     badge: 'FastFood',
     description: 'Vỏ bánh Burger mè kẹp nhân bò/gà rán, xà lách, cà chua, phô mai'
@@ -209,7 +209,7 @@ export const MENU: MenuItem[] = [
     id: 'ff-2',
     name: 'Sandwich Kẹp Trứng Xúc Xích / Gà',
     price: 22000,
-    cost: 8000,
+    cost: 11500,
     category: 'fastfood-an-vat',
     description: 'Bánh mì Sandwich áp chảo kẹp trứng, xúc xích, rau sốt béo'
   },
@@ -217,7 +217,7 @@ export const MENU: MenuItem[] = [
     id: 'ff-3',
     name: 'Mì Trộn Thập Cẩm (Xúc Xích + Gà + Trứng)',
     price: 30000,
-    cost: 11000,
+    cost: 16000,
     category: 'fastfood-an-vat',
     badge: 'Hot Trend',
     description: 'Mì trộn sốt đậm đà kèm xúc xích khía, gà rán, trứng ốp la'
@@ -226,7 +226,7 @@ export const MENU: MenuItem[] = [
     id: 'ff-4',
     name: 'Mì Cay 7 Cấp Độ (Bò / Hải Sản)',
     price: 40000,
-    cost: 15500,
+    cost: 22000,
     category: 'fastfood-an-vat',
     badge: 'Món Tối',
     description: 'Mì Koreno nấu kim chi chua cay cùng bò, tôm, mực, cá viên, bông cải'
@@ -235,7 +235,7 @@ export const MENU: MenuItem[] = [
     id: 'ff-5',
     name: 'Bánh Tráng Trộn Đặc Biệt',
     price: 20000,
-    cost: 7000,
+    cost: 10000,
     category: 'fastfood-an-vat',
     description: 'Bánh tráng dẻo trộn khô bò, trứng cút, xoài xanh, rau răm, sốt tắc'
   },
@@ -245,35 +245,35 @@ export const MENU: MenuItem[] = [
     id: 'tp-1',
     name: 'Trứng Ốp La / Trứng Phủ Thêm',
     price: 5000,
-    cost: 2800,
+    cost: 3200,
     category: 'topping'
   },
   {
     id: 'tp-2',
     name: 'Phô Mai Lát Thêm',
     price: 5000,
-    cost: 2500,
+    cost: 3000,
     category: 'topping'
   },
   {
     id: 'tp-3',
     name: 'Xúc Xích Chiên Thêm',
     price: 8000,
-    cost: 3500,
+    cost: 4500,
     category: 'topping'
   },
   {
     id: 'tp-4',
     name: 'Cơm Thêm / Vắt Mì Thêm',
     price: 5000,
-    cost: 2000,
+    cost: 2800,
     category: 'topping'
   },
   {
     id: 'tp-5',
     name: 'Pepsi / Coca / 7Up / Trà Đá',
     price: 10000,
-    cost: 5500,
+    cost: 6500,
     category: 'topping'
   }
 ];
@@ -709,20 +709,20 @@ export function findMenuPrice(name: string): number {
 }
 
 export function findMenuCost(name: string, fallbackPrice: number = 0): number {
-  if (!name) return Math.round(fallbackPrice * 0.38);
+  if (!name) return Math.round(fallbackPrice * 0.54);
   const cleanTarget = cleanStr(name);
   let found = MENU.find(m => cleanStr(m.name) === cleanTarget);
   if (found && found.cost) return found.cost;
   found = MENU.find(m => cleanStr(m.name).includes(cleanTarget) || cleanTarget.includes(cleanStr(m.name)));
   if (found && found.cost) return found.cost;
-  return Math.round(fallbackPrice * 0.38);
+  return Math.round(fallbackPrice * 0.54);
 }
 
 export function computeOrderCost(order: Order): number {
   if (Array.isArray(order.lines) && order.lines.length > 0) {
     return order.lines.reduce((sum, l) => sum + findMenuCost(l.name, l.price) * (l.qty || 1), 0);
   }
-  return Math.round((order.total || 0) * 0.38);
+  return Math.round((order.total || 0) * 0.54);
 }
 
 export function parseOrderItems(rawInput?: string, orderTotal?: number): OrderLine[] {

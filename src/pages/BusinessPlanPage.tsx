@@ -273,7 +273,7 @@ export default function BusinessPlanPage() {
     const dailyDirectCogs =
       bbkDailyQty * avgBbkCost +
       rice25kDailyQty * rice25Cost +
-      main40kDailyQty * main40Price * (22300 / 40000);
+      main40kDailyQty * main40Cost;
 
     // Hao hụt nguyên liệu thực tế cuối ngày (Cơm nguội dư, bánh bao hấp lâu bị ỉu, rau héo, rớt ca ~3% doanh thu)
     const dailyWasteCost = Math.round(dailyRevenue * 0.03);

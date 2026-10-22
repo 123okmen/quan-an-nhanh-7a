@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Montserrat:wght@400;600;800&subset=vietnamese&display=swap');
+
+:root {
+  --bg-color: #050505;
+  --text-primary: #ffffff;
+  --text-secondary: #aaaaaa;
+  --accent-color: #e31837;
+  --accent-hover: #b91026;
+  --accent-yellow: #f1c40f;
+  --glass-bg: rgba(20, 20, 20, 0.85);
+  --glass-border: rgba(227, 24, 55, 0.3);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Montserrat', system-ui, sans-serif;
+  background: var(--bg-color);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(227, 24, 55, 0.15), transparent 30%),
+    radial-gradient(circle at 90% 80%, rgba(241, 196, 15, 0.08), transparent 30%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, .title, .btn-primary {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+}
+
+#root {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(227, 24, 55, 0.05);
+  border-top: 2px solid var(--accent-color);
+}
+
+.input-field {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  padding: 1rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(227, 24, 55, 0.25);
+}
+
+.btn-primary {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 3px solid #900a20;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(1px);
+  border-bottom-width: 2px;
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Markdown Styles */
+.markdown-body {
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+.markdown-body h1, .markdown-body h2, .markdown-body h3 {
+  color: #fff;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 0.5rem;
+  margin-top: 1.5rem;
+}
+.markdown-body ul {
+  padding-left: 1.5rem;
+}
+.markdown-body strong {
+  color: var(--accent-color);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  max-width: 500px;
+  width: 90%;
+}
+
+@keyframes blinker { 50% { opacity: 0; } } .blink { animation: blinker 1s linear infinite; }
+
+
+/* Ẩn toàn bộ chức năng in bill khi mở ở chế độ máy tính (Desktop / Màn hình >= 768px) */
+@media (min-width: 768px) {
+  .mobile-only-print,
+  .print-feature-mobile-only {
+    display: none !important;
+  }
+}

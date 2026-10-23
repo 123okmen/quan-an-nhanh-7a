@@ -1,5 +1,19 @@
-import type { Order, OrderLine } from '../lib/store';
-import { BRAND_NAME, BRAND_SUBTITLE, shiftLabel, getShift, findMenuPrice, parseOrderItems } from '../lib/store';
+import type { Order, OrderLine, Shift } from '../lib/store';
+import {
+  BRAND_NAME,
+  BRAND_SUBTITLE,
+  STORE_ADDRESS,
+  STORE_HOTLINE,
+  shiftLabel,
+  getShift,
+  findMenuPrice,
+  parseOrderItems,
+  getBankConfig,
+  getVietQrUrl
+} from '../lib/store';
+
+export type PrintDocMode = 'receipt' | 'kitchen';
+export type PaperSize = '58' | '80';
 
 /** Kiểm tra thiết bị có phải di động (iPhone / iPad / Android) */
 export function isMobileDevice(): boolean {
@@ -7,17 +21,29 @@ export function isMobileDevice(): boolean {
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
 }
 
-/**
- * Kiểm tra xem thiết bị có đang ở chế độ máy tính (Desktop / PC / Laptop hoặc mobile bật Desktop Site) hay không.
- * Trả về true nếu:
- * 1. Màn hình rộng (window.innerWidth >= 768px).
- * 2. User-Agent không phải thiết bị di động (Windows, Mac, Linux...).
- */
+/** Giữ lại hàm để tương thích ngược, nhưng luôn cho phép in trên mọi thiết bị */
 export function isComputerMode(): boolean {
-  if (typeof window === 'undefined') return false;
-  const isWide = window.innerWidth >= 768;
-  const isDesktopUA = !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
-  return isWide || isDesktopUA;
+  return false;
+}
+
+/** Cài đặt Khổ giấy in (58mm hoặc 80mm) */
+export function getPaperSize(): PaperSize {
+  const s = localStorage.getItem('fastfood_7a_paper_size');
+  return s === '80' ? '80' : '58';
+}
+
+export function setPaperSize(size: PaperSize): void {
+  localStorage.setItem('fastfood_7a_paper_size', size);
+}
+
+/** Cài đặt Tự động mở hộp thoại In Bill sau khi bấm Lưu đơn */
+export function isAutoPrintEnabled(): boolean {
+  const val = localStorage.getItem('fastfood_7a_auto_print');
+  return val === null ? true : val === 'true';
+}
+
+export function setAutoPrintEnabled(enabled: boolean): void {
+  localStorage.setItem('fastfood_7a_auto_print', enabled ? 'true' : 'false');
 }
 
 /** Định dạng tiền tệ cho máy in text / Bluetooth ESC/POS (chuẩn ký tự ASCII 'd', tuyệt đối không lỗi font ký tự đ) */
@@ -73,11 +99,13 @@ function resolveOrderLines(order: Order): OrderLine[] {
 }
 
 /** Tạo nội dung text cho máy in Bluetooth (RawBT / Clipboard) */
-export function generateReceiptPlainText(order: Order): string {
+export function generateReceiptPlainText(order: Order, mode: PrintDocMode = 'receipt'): string {
   const lines = resolveOrderLines(order);
   const totalQty = lines.reduce((sum, l) => sum + (Number(l.qty) || 1), 0);
   const subTotal = lines.reduce((sum, l) => sum + (Number(l.price) || 0) * (Number(l.qty) || 1), 0);
-  const finalTotal = order.total || subTotal || 0;
+  const discount = Number(order.discount) || 0;
+  const surcharge = Number(order.surcharge) || 0;
+  const finalTotal = order.total || Math.max(0, subTotal - discount + surcharge);
   const changeMoney = (order.cash || 0) - finalTotal;
 
   const doubleLine = '================================';
@@ -86,25 +114,55 @@ export function generateReceiptPlainText(order: Order): string {
   const padLeft = (s: string, len: number) => (' '.repeat(len) + s).slice(-len);
 
   let typeLabel = 'TAI QUAN';
-  if (order.tableNo) typeLabel = `BAN SỐ ${order.tableNo}`;
+  if (order.tableNo) typeLabel = `BAN SO ${order.tableNo}`;
   else if (order.orderType === 'mang-ve') typeLabel = 'MANG VE';
+  else if (order.orderType === 'giao-hang') typeLabel = 'GIAO HANG';
   else if (order.paymentMethod === 'app') typeLabel = 'DON APP';
 
   let dateStr = '';
   try {
     const d = new Date(order.time);
-    dateStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')} ${d.getDate()}/${d.getMonth() + 1}`;
+    dateStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} ${d.getDate()}/${d.getMonth() + 1}`;
   } catch {
     dateStr = order.time || '';
   }
 
+  if (mode === 'kitchen') {
+    let kt = '';
+    kt += '   *** PHIEU CHE BIEN BEP ***\n';
+    kt += doubleLine + '\n';
+    kt += `LOAI: [${removeVietnameseTones(typeLabel)}] - #${order.id}\n`;
+    kt += `Gio: ${dateStr} | NV: ${removeVietnameseTones(order.staff || 'Quay')}\n`;
+    kt += doubleLine + '\n';
+    lines.forEach((l, idx) => {
+      kt += `${idx + 1}. [x${l.qty}] ${removeVietnameseTones(l.name).toUpperCase()}\n`;
+      if (l.note) {
+        kt += `   >>> GHI CHU: ${removeVietnameseTones(l.note).toUpperCase()}\n`;
+      }
+    });
+    if (order.note) {
+      kt += singleLine + '\n';
+      kt += `GHI CHU DON: ${removeVietnameseTones(order.note).toUpperCase()}\n`;
+    }
+    kt += doubleLine + '\n';
+    kt += `TONG SO PHAN: ${totalQty} MON\n\n\n\n`;
+    return kt;
+  }
+
   let text = '';
   text += '        ' + removeVietnameseTones(BRAND_NAME) + '\n';
-  text += '   ' + removeVietnameseTones(BRAND_SUBTITLE) + '\n';
+  text += ' ' + removeVietnameseTones(BRAND_SUBTITLE) + '\n';
+  text += ' DC: So 2 Duong 7A, KP Phuoc Thien\n';
+  text += ' Hotline/Zalo: ' + STORE_HOTLINE + '\n';
   text += doubleLine + '\n';
   text += padRight('[' + removeVietnameseTones(typeLabel) + ']', 16) + padLeft('#' + order.id, 16) + '\n';
   text += padRight('Gio: ' + dateStr, 18) + padLeft(removeVietnameseTones(shiftLabel(order.shift || getShift()).split(' ')[1] || ''), 14) + '\n';
-  text += padRight('NV: ' + removeVietnameseTones(order.staff || 'Quan'), 18) + padLeft(order.paymentMethod === 'chuyenkhoan' ? 'CK QR' : 'Tien mat', 14) + '\n';
+  text += padRight('NV: ' + removeVietnameseTones(order.staff || 'Quan'), 18) + padLeft(order.paymentMethod === 'chuyenkhoan' ? 'CK QR' : order.paymentMethod === 'app' ? 'Don App' : 'Tien mat', 14) + '\n';
+  if (order.customerPhone || order.customerAddress) {
+    text += singleLine + '\n';
+    if (order.customerPhone) text += 'SDT Khach: ' + removeVietnameseTones(order.customerPhone) + '\n';
+    if (order.customerAddress) text += 'Giao den: ' + removeVietnameseTones(order.customerAddress) + '\n';
+  }
   text += singleLine + '\n';
   text += padRight(`Mon (${totalQty}p)`, 16) + padLeft('SL', 4) + padLeft('Tien', 12) + '\n';
   text += singleLine + '\n';
@@ -120,6 +178,11 @@ export function generateReceiptPlainText(order: Order): string {
   });
 
   text += singleLine + '\n';
+  if (discount > 0 || surcharge > 0) {
+    text += padRight('Tam tinh:', 16) + padLeft(fmtPrintPlainVND(subTotal), 16) + '\n';
+    if (discount > 0) text += padRight('Giam gia:', 16) + padLeft('-' + fmtPrintPlainVND(discount), 16) + '\n';
+    if (surcharge > 0) text += padRight('Phu thu/Ship:', 16) + padLeft('+' + fmtPrintPlainVND(surcharge), 16) + '\n';
+  }
   text += padRight('TONG CONG:', 16) + padLeft(fmtPrintPlainVND(finalTotal), 16) + '\n';
   if (order.cash) {
     text += `Khach: ${fmtPrintPlainVND(order.cash)} - Thoi: ${fmtPrintPlainVND(changeMoney > 0 ? changeMoney : 0)}\n`;
@@ -133,19 +196,24 @@ export function generateReceiptPlainText(order: Order): string {
   return text;
 }
 
-/** Tạo chuỗi HTML chuẩn khổ 58mm UTF-8 */
-export function generateReceiptHtml(order: Order): string {
+/** Tạo chuỗi HTML chuẩn khổ 58mm hoặc 80mm UTF-8 */
+export function generateReceiptHtml(order: Order, mode: PrintDocMode = 'receipt', paperSize: PaperSize = getPaperSize()): string {
   const lines = resolveOrderLines(order);
   const totalQty = lines.reduce((sum, l) => sum + (Number(l.qty) || 1), 0);
   const subTotal = lines.reduce((sum, l) => sum + (Number(l.price) || 0) * (Number(l.qty) || 1), 0);
-  const finalTotal = order.total || subTotal || 0;
+  const discount = Number(order.discount) || 0;
+  const surcharge = Number(order.surcharge) || 0;
+  const finalTotal = order.total || Math.max(0, subTotal - discount + surcharge);
   const changeMoney = (order.cash || 0) - finalTotal;
+
+  const widthMm = paperSize === '80' ? '72mm' : '48mm';
+  const baseFontPx = paperSize === '80' ? 12.5 : 11;
 
   let typeLabel = 'TẠI QUÁN';
   if (order.tableNo) typeLabel = `BÀN SỐ ${order.tableNo}`;
   else if (order.orderType === 'mang-ve') typeLabel = 'MANG VỀ';
-  else if (order.paymentMethod === 'app') typeLabel = 'ĐƠN APP';
   else if (order.orderType === 'giao-hang') typeLabel = 'GIAO HÀNG';
+  else if (order.paymentMethod === 'app') typeLabel = 'ĐƠN APP';
 
   let paymentText = 'Tiền mặt';
   if (order.paymentMethod === 'chuyenkhoan') paymentText = 'Chuyển khoản QR';
@@ -155,7 +223,7 @@ export function generateReceiptHtml(order: Order): string {
   try {
     const d = new Date(order.time);
     const timeOnly = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-    const dateOnly = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+    const dateOnly = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
     dateStr = `${timeOnly} ${dateOnly}`;
   } catch {
     dateStr = order.time || '';
@@ -163,46 +231,98 @@ export function generateReceiptHtml(order: Order): string {
 
   const shiftName = shiftLabel(order.shift || getShift());
 
+  // CHẾ ĐỘ 1: PHIẾU CHẾ BIẾN BẾP (CHỮ TO RÕ CHO ĐẦU BẾP WOK & QUẦY FASTFOOD)
+  if (mode === 'kitchen') {
+    const kitchenRows = lines.map((l, idx) => `
+      <div style="padding: 5px 0; border-bottom: 1.5px dashed #000;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 6px;">
+          <span style="font-size: ${baseFontPx + 3}px; font-weight: 900; color: #000; line-height: 1.2;">
+            ${idx + 1}. ${l.name}
+          </span>
+          <span style="font-size: ${baseFontPx + 5}px; font-weight: 900; border: 2px solid #000; padding: 1px 6px; border-radius: 4px; white-space: nowrap; color: #000;">
+            x${l.qty}
+          </span>
+        </div>
+        ${l.note ? `<div style="margin-top: 3px; font-size: ${baseFontPx + 1.5}px; font-weight: 800; background: #eee; padding: 2px 5px; border-left: 3px solid #000; color: #000;">⚠️ GHI CHÚ: ${l.note}</div>` : ''}
+      </div>
+    `).join('');
+
+    return `
+      <div style="width: ${widthMm}; max-width: ${widthMm}; margin: 0 auto; padding: 3px 2px; color: #000; background: #fff; font-family: Arial, 'Segoe UI', Tahoma, sans-serif; font-size: ${baseFontPx}px; line-height: 1.3;">
+        <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+          <div style="font-size: ${baseFontPx + 3}px; font-weight: 900; text-transform: uppercase;">👨‍🍳 PHIẾU CHẾ BIẾN BẾP</div>
+          <div style="font-size: ${baseFontPx + 5}px; font-weight: 900; margin-top: 3px; border: 2px solid #000; display: inline-block; padding: 2px 10px;">
+            ${typeLabel}
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: ${baseFontPx}px; font-weight: 700; border-bottom: 1px dashed #000; padding-bottom: 3px; margin-bottom: 4px;">
+          <span>Mã: #${order.id}</span>
+          <span>Giờ: ${dateStr.split(' ')[0] || dateStr}</span>
+        </div>
+        <div>
+          ${kitchenRows}
+        </div>
+        ${order.note ? `
+          <div style="margin-top: 5px; padding: 4px; border: 2px solid #000; font-size: ${baseFontPx + 1}px; font-weight: 900;">
+            📌 GHI CHÚ CẢ ĐƠN: ${order.note}
+          </div>
+        ` : ''}
+        <div style="text-align: right; margin-top: 6px; font-size: ${baseFontPx + 2}px; font-weight: 900;">
+          TỔNG SỐ MÓN: ${totalQty} PHẦN
+        </div>
+        <div style="height: 10px;"></div>
+      </div>
+    `;
+  }
+
+  // CHẾ ĐỘ 2: HÓA ĐƠN THANH TOÁN KHÁCH HÀNG
+  const bankCfg = getBankConfig();
+  const qrUrl = bankCfg.showQrOnBill && finalTotal > 0 ? getVietQrUrl(finalTotal, order.id) : '';
+
   const linesHtml = lines.map(l => `
     <tr>
-      <td style="padding: 2px 0; border-bottom: 1px dotted #000; word-break: break-word;">
-        <div style="font-weight: 700; font-size: 11px; color: #000;">${l.name}</div>
-        ${l.note ? `<div style="font-size: 9.5px; font-style: italic; color: #000;">➥ ${l.note}</div>` : ''}
+      <td style="padding: 3px 0; border-bottom: 1px dotted #000; word-break: break-word;">
+        <div style="font-weight: 700; font-size: ${baseFontPx}px; color: #000;">${l.name}</div>
+        ${l.note ? `<div style="font-size: ${baseFontPx - 1.5}px; font-style: italic; color: #000;">➥ ${l.note}</div>` : ''}
       </td>
-      <td style="text-align: center; padding: 2px 0; border-bottom: 1px dotted #000; vertical-align: top; font-weight: 700; font-size: 11px; color: #000;">${l.qty}</td>
-      <td style="text-align: right; padding: 2px 0; border-bottom: 1px dotted #000; vertical-align: top; font-weight: 700; font-size: 11px; white-space: nowrap; color: #000;">${fmtPrintHtmlVND(l.price * l.qty)}</td>
+      <td style="text-align: center; padding: 3px 0; border-bottom: 1px dotted #000; vertical-align: top; font-weight: 700; font-size: ${baseFontPx}px; color: #000;">${l.qty}</td>
+      <td style="text-align: right; padding: 3px 0; border-bottom: 1px dotted #000; vertical-align: top; font-weight: 700; font-size: ${baseFontPx}px; white-space: nowrap; color: #000;">${fmtPrintHtmlVND(l.price * l.qty)}</td>
     </tr>
   `).join('');
 
   return `
-    <div style="width: 48mm; max-width: 48mm; margin: 0 auto; padding: 2px 1px; color: #000; background: #fff; font-family: Arial, 'Segoe UI', Tahoma, sans-serif; font-size: 11px; line-height: 1.25;">
-      <div style="text-align: center; margin-bottom: 3px; padding-bottom: 3px; border-bottom: 1px dashed #000;">
-        <div style="font-size: 14px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase;">${BRAND_NAME}</div>
-        <div style="font-size: 9.5px; font-weight: 600; margin-top: 1px;">${BRAND_SUBTITLE}</div>
+    <div style="width: ${widthMm}; max-width: ${widthMm}; margin: 0 auto; padding: 2px 1px; color: #000; background: #fff; font-family: Arial, 'Segoe UI', Tahoma, sans-serif; font-size: ${baseFontPx}px; line-height: 1.28;">
+      <div style="text-align: center; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1.5px dashed #000;">
+        <div style="font-size: ${baseFontPx + 3.5}px; font-weight: 900; letter-spacing: 0.4px; text-transform: uppercase;">${BRAND_NAME}</div>
+        <div style="font-size: ${baseFontPx - 1.5}px; font-weight: 700; margin-top: 1px;">${BRAND_SUBTITLE}</div>
+        <div style="font-size: ${baseFontPx - 2}px; margin-top: 2px;">ĐC: ${STORE_ADDRESS}</div>
+        <div style="font-size: ${baseFontPx - 1.5}px; font-weight: 700; margin-top: 1px;">📞 Giao hàng: ${STORE_HOTLINE}</div>
       </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin: 3px 0; font-size: 11px;">
-        <span style="font-weight: 900; border: 1.5px solid #000; padding: 1px 5px; border-radius: 2px; text-transform: uppercase;">${typeLabel}</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin: 4px 0; font-size: ${baseFontPx}px;">
+        <span style="font-weight: 900; border: 1.5px solid #000; padding: 1px 6px; border-radius: 3px; text-transform: uppercase;">${typeLabel}</span>
         <span style="font-weight: 800;">#${order.id}</span>
       </div>
 
-      <div style="font-size: 9.5px; margin-bottom: 3px; padding-bottom: 3px; border-bottom: 1px dashed #000; line-height: 1.3;">
+      <div style="font-size: ${baseFontPx - 1.5}px; margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px dashed #000; line-height: 1.35;">
         <div style="display: flex; justify-content: space-between;">
           <span>Giờ: ${dateStr}</span>
-          <span>${shiftName.split(' ')[1] || ''}</span>
+          <span>${shiftName.split('(')[0] || ''}</span>
         </div>
         <div style="display: flex; justify-content: space-between;">
-          <span>NV: ${order.staff || 'Trạm'}</span>
-          <span>TT: ${paymentText}</span>
+          <span>Thu ngân: ${order.staff || 'Quầy'}</span>
+          <span>TT: <strong>${paymentText}</strong></span>
         </div>
+        ${order.customerPhone ? `<div>📞 SĐT Khách: <strong>${order.customerPhone}</strong></div>` : ''}
+        ${order.customerAddress ? `<div>📍 Giao đến: <strong>${order.customerAddress}</strong></div>` : ''}
       </div>
 
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 3px; table-layout: fixed;">
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 4px; table-layout: fixed;">
         <thead>
           <tr>
-            <th style="text-align: left; width: 58%; border-bottom: 1px solid #000; padding: 2px 0; font-size: 10px;">Món (${totalQty}p)</th>
-            <th style="text-align: center; width: 14%; border-bottom: 1px solid #000; padding: 2px 0; font-size: 10px;">SL</th>
-            <th style="text-align: right; width: 28%; border-bottom: 1px solid #000; padding: 2px 0; font-size: 10px;">Tiền</th>
+            <th style="text-align: left; width: 58%; border-bottom: 1.5px solid #000; padding: 2px 0; font-size: ${baseFontPx - 1}px;">Món (${totalQty} phần)</th>
+            <th style="text-align: center; width: 14%; border-bottom: 1.5px solid #000; padding: 2px 0; font-size: ${baseFontPx - 1}px;">SL</th>
+            <th style="text-align: right; width: 28%; border-bottom: 1.5px solid #000; padding: 2px 0; font-size: ${baseFontPx - 1}px;">Thành tiền</th>
           </tr>
         </thead>
         <tbody>
@@ -210,25 +330,54 @@ export function generateReceiptHtml(order: Order): string {
         </tbody>
       </table>
 
-      <div style="border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 3px 0; margin: 3px 0;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 900;">
+      <div style="border-top: 1.5px dashed #000; border-bottom: 1.5px dashed #000; padding: 4px 0; margin: 4px 0;">
+        ${(discount > 0 || surcharge > 0) ? `
+          <div style="display: flex; justify-content: space-between; font-size: ${baseFontPx - 1}px; margin-bottom: 2px;">
+            <span>Tạm tính:</span>
+            <span>${fmtPrintHtmlVND(subTotal)}</span>
+          </div>
+          ${discount > 0 ? `
+            <div style="display: flex; justify-content: space-between; font-size: ${baseFontPx - 1}px; margin-bottom: 2px;">
+              <span>Chiết khấu / Giảm giá:</span>
+              <span>-${fmtPrintHtmlVND(discount)}</span>
+            </div>
+          ` : ''}
+          ${surcharge > 0 ? `
+            <div style="display: flex; justify-content: space-between; font-size: ${baseFontPx - 1}px; margin-bottom: 2px;">
+              <span>Phí ship / Phụ thu:</span>
+              <span>+${fmtPrintHtmlVND(surcharge)}</span>
+            </div>
+          ` : ''}
+        ` : ''}
+        <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: ${baseFontPx + 3}px; font-weight: 900;">
           <span>TỔNG CỘNG:</span>
           <span>${fmtPrintHtmlVND(finalTotal)}</span>
         </div>
         ${order.cash ? `
-        <div style="display: flex; justify-content: space-between; font-size: 10px; margin-top: 2px;">
+        <div style="display: flex; justify-content: space-between; font-size: ${baseFontPx - 1}px; margin-top: 2px;">
           <span>Khách đưa: ${fmtPrintHtmlVND(order.cash)}</span>
-          <span>Thối: ${fmtPrintHtmlVND(changeMoney > 0 ? changeMoney : 0)}</span>
+          <span>Tiền thối: <strong>${fmtPrintHtmlVND(changeMoney > 0 ? changeMoney : 0)}</strong></span>
         </div>
         ` : ''}
         ${order.note ? `
-        <div style="margin: 2px 0 1px 0; font-size: 9.5px; font-style: italic;">
+        <div style="margin: 3px 0 1px 0; font-size: ${baseFontPx - 1}px; font-weight: 700;">
           * Ghi chú: ${order.note}
         </div>
         ` : ''}
       </div>
 
-      <div style="text-align: center; margin-top: 3px; font-size: 9.5px; font-weight: 700;">
+      ${qrUrl ? `
+        <div style="text-align: center; margin: 5px 0; padding: 4px 0; border-bottom: 1px dashed #000;">
+          <div style="font-size: ${baseFontPx - 1.5}px; font-weight: 800; margin-bottom: 2px;">QUÉT MÃ QR CHUYỂN KHOẢN</div>
+          <img src="${qrUrl}" alt="VietQR" style="width: 34mm; height: auto; display: block; margin: 0 auto;" crossorigin="anonymous" />
+          <div style="font-size: ${baseFontPx - 2}px; font-weight: 700; margin-top: 2px;">
+            ${bankCfg.bankName} • ${bankCfg.accountNo}<br/>
+            ${bankCfg.accountName}
+          </div>
+        </div>
+      ` : ''}
+
+      <div style="text-align: center; margin-top: 4px; font-size: ${baseFontPx - 1.5}px; font-weight: 700;">
         Cảm ơn Quý khách & Hẹn gặp lại!
       </div>
       <div style="height: 10px;"></div>
@@ -236,35 +385,33 @@ export function generateReceiptHtml(order: Order): string {
   `;
 }
 
-// Biến lưu trữ kết nối Bluetooth đang hoạt động (tránh mất kết nối và tránh phải quét lại)
+// Biến lưu trữ kết nối Bluetooth đang hoạt động
 let cachedBleDevice: any = null;
 let cachedBleServer: any = null;
 let cachedBleWriteChar: any = null;
 let isBleConnecting = false;
 let currentModalOrder: Order | null = null;
+let currentModalMode: PrintDocMode = 'receipt';
 
 export const BLE_PRINTER_SERVICES = [
-  '000018f0-0000-1000-8000-00805f9b34fb', // Standard mini BLE printer
-  '49535343-fe7d-4ae5-8fa9-9fafd205e455', // ISSC transparent UART (MPT-II, EG-58BT)
-  'e7810a71-73ae-499d-8c15-faa9aef0c3f2', // BLE SPP UART
-  '0000e0ff-0000-1000-8000-00805f9b34fb', // POS-58 series
-  '0000ff00-0000-1000-8000-00805f9b34fb', // Feasycom serial
+  '000018f0-0000-1000-8000-00805f9b34fb',
+  '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+  'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+  '0000e0ff-0000-1000-8000-00805f9b34fb',
+  '0000ff00-0000-1000-8000-00805f9b34fb',
   '0000ae00-0000-1000-8000-00805f9b34fb',
   '0000af00-0000-1000-8000-00805f9b34fb',
   '0000fee7-0000-1000-8000-00805f9b34fb'
 ];
 
-/** Kiểm tra thiết bị Bluetooth hiện đang kết nối hay chưa */
 export function isBluetoothConnected(): boolean {
   return !!(cachedBleServer && cachedBleServer.connected && cachedBleWriteChar);
 }
 
-/** Lấy tên máy in Bluetooth hiện tại */
 export function getConnectedDeviceName(): string {
   return cachedBleDevice?.name || 'EG-58BT / MPT-II';
 }
 
-/** Tùy chọn tự ngắt kết nối sau khi in */
 export function isAutoDisconnectEnabled(): boolean {
   return localStorage.getItem('ble_auto_disconnect') === 'true';
 }
@@ -273,7 +420,6 @@ export function setAutoDisconnectEnabled(val: boolean): void {
   localStorage.setItem('ble_auto_disconnect', val ? 'true' : 'false');
 }
 
-/** Ngắt kết nối máy in để nhả cho máy khác kết nối hoặc để quét lại */
 export function disconnectBluetooth(silent = false): void {
   try {
     if (cachedBleServer && cachedBleServer.connected) {
@@ -292,7 +438,6 @@ export function disconnectBluetooth(silent = false): void {
   }
 }
 
-/** Gửi byte mảng qua Characteristic với kích thước gói an toàn */
 async function sendBytesToCharacteristic(writeChar: any, rawBytes: Uint8Array): Promise<void> {
   const CHUNK_SIZE = 80;
   for (let i = 0; i < rawBytes.length; i += CHUNK_SIZE) {
@@ -306,11 +451,10 @@ async function sendBytesToCharacteristic(writeChar: any, rawBytes: Uint8Array): 
   }
 }
 
-/** Kết nối & In trực tiếp qua Web Bluetooth BLE (Dành cho Android Chrome, Bluefy iOS, PC Chrome) */
-export async function printViaWebBluetooth(order: Order): Promise<boolean> {
+export async function printViaWebBluetooth(order: Order, mode: PrintDocMode = 'receipt'): Promise<boolean> {
   const nav = navigator as any;
   if (!nav || !nav.bluetooth) {
-    alert('Trình duyệt này chưa bật Web Bluetooth.\n- Trên iPhone: Bạn hãy tải trình duyệt miễn phí Bluefy từ App Store để in Bluetooth trực tiếp.\n- Trên Android: Dùng Google Chrome để in trực tiếp nhé!');
+    alert('Trình duyệt này chưa bật Web Bluetooth.\n- Trên PC/Android: Dùng Google Chrome hoặc Microsoft Edge.\n- Trên iPhone: Dùng nút "In Trình Duyệt / AirPrint" ở ngay phía trên hoặc tải trình duyệt Bluefy.');
     return false;
   }
 
@@ -319,34 +463,27 @@ export async function printViaWebBluetooth(order: Order): Promise<boolean> {
     return false;
   }
 
-  const textData = generateReceiptPlainText(order);
+  const textData = generateReceiptPlainText(order, mode);
   const encoder = new TextEncoder();
   const rawBytes = encoder.encode(textData);
 
-  // 1. NẾU ĐÃ KẾT NỐI SẴN: TÁI SỬ DỤNG KẾT NỐI, IN NGAY LẬP TỨC (KHÔNG CẦN QUÉT LẠI)
   if (isBluetoothConnected() && cachedBleWriteChar) {
     try {
       await sendBytesToCharacteristic(cachedBleWriteChar, rawBytes);
-      
       if (isAutoDisconnectEnabled()) {
         await new Promise(r => setTimeout(r, 400));
         disconnectBluetooth(true);
       }
-      
       alert('Đã in thành công qua máy in Bluetooth!');
       return true;
     } catch (err) {
-      console.warn('Lỗi ghi dữ liệu Bluetooth vào kết nối cũ, giải phóng kết nối để kết nối lại:', err);
-      // Kết nối cũ bị đứt hoặc lỗi (ví dụ máy in tắt rồi bật lại) -> ngắt sạch để máy in phát sóng trở lại
+      console.warn('Lỗi ghi dữ liệu Bluetooth vào kết nối cũ:', err);
       disconnectBluetooth(true);
-      // Rơi xuống phần kết nối mới bên dưới
     }
   }
 
-  // 2. KẾT NỐI MỚI (CHƯA KẾT NỐI HOẶC VỪA NGẮT KẾT NỐI CŨ ĐỂ QUÉT LẠI)
   isBleConnecting = true;
   try {
-    // Đảm bảo không còn kết nối ngầm nào chiếm giữ máy in
     if (cachedBleServer && cachedBleServer.connected) {
       try { cachedBleServer.disconnect(); } catch (_) {}
     }
@@ -360,7 +497,6 @@ export async function printViaWebBluetooth(order: Order): Promise<boolean> {
     });
 
     device.addEventListener('gattserverdisconnected', () => {
-      console.log('Bluetooth GATT disconnected event');
       cachedBleDevice = null;
       cachedBleServer = null;
       cachedBleWriteChar = null;
@@ -380,25 +516,21 @@ export async function printViaWebBluetooth(order: Order): Promise<boolean> {
             break;
           }
         }
-      } catch (e) {
-        console.warn('Không đọc được characteristics của service:', s.uuid, e);
-      }
+      } catch (e) {}
       if (writeChar) break;
     }
 
     if (!writeChar) {
-      alert('Không tìm thấy kênh ghi dữ liệu (Characteristic Write) trên máy in EG-58BT!');
+      alert('Không tìm thấy kênh ghi dữ liệu (Characteristic Write) trên máy in Bluetooth!');
       try { server.disconnect(); } catch (_) {}
       return false;
     }
 
-    // Lưu cache để in các lần sau không cần quét
     cachedBleDevice = device;
     cachedBleServer = server;
     cachedBleWriteChar = writeChar;
     refreshModalBleUI();
 
-    // Gửi dữ liệu in
     await sendBytesToCharacteristic(cachedBleWriteChar, rawBytes);
 
     if (isAutoDisconnectEnabled()) {
@@ -420,79 +552,78 @@ export async function printViaWebBluetooth(order: Order): Promise<boolean> {
   }
 }
 
-/** Gửi lệnh in sang App RawBT trên điện thoại Android */
-export function printViaRawBT(order: Order) {
-  const plainText = generateReceiptPlainText(order);
+export function printViaRawBT(order: Order, mode: PrintDocMode = 'receipt') {
+  const plainText = generateReceiptPlainText(order, mode);
   const rawUrl = 'rawbt:' + encodeURIComponent(plainText);
   window.location.href = rawUrl;
 }
 
-/** Đảm bảo nhúng style @media print vào document */
-function ensurePrintStyles() {
+function ensurePrintStyles(paperSize: PaperSize = getPaperSize()) {
   if (typeof document === 'undefined') return;
-  if (!document.getElementById('receipt-universal-print-style')) {
-    const style = document.createElement('style');
+  const pageWidth = paperSize === '80' ? '80mm' : '58mm';
+  const stageWidth = paperSize === '80' ? '72mm' : '48mm';
+
+  let style = document.getElementById('receipt-universal-print-style') as HTMLStyleElement | null;
+  if (!style) {
+    style = document.createElement('style');
     style.id = 'receipt-universal-print-style';
-    style.innerHTML = `
-      @media screen {
-        #receipt-print-stage {
-          display: none;
-        }
-      }
-      @media print {
-        @page {
-          size: 58mm auto;
-          margin: 0;
-        }
-        body > * {
-          display: none !important;
-        }
-        #receipt-print-stage {
-          display: block !important;
-          position: fixed !important;
-          left: 0 !important;
-          top: 0 !important;
-          width: 48mm !important;
-          max-width: 48mm !important;
-          margin: 0 !important;
-          padding: 2px 1px !important;
-          background: #fff !important;
-          color: #000 !important;
-          z-index: 9999999 !important;
-          font-family: Arial, 'Segoe UI', Tahoma, sans-serif !important;
-        }
-        #receipt-print-stage,
-        #receipt-print-stage * {
-          font-family: Arial, 'Segoe UI', Tahoma, sans-serif !important;
-          color: #000 !important;
-          box-sizing: border-box !important;
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        #receipt-print-stage table {
-          display: table !important;
-          width: 100% !important;
-        }
-        #receipt-print-stage thead {
-          display: table-header-group !important;
-        }
-        #receipt-print-stage tbody {
-          display: table-row-group !important;
-        }
-        #receipt-print-stage tr {
-          display: table-row !important;
-        }
-        #receipt-print-stage th,
-        #receipt-print-stage td {
-          display: table-cell !important;
-        }
-      }
-    `;
     document.head.appendChild(style);
   }
+  style.innerHTML = `
+    @media screen {
+      #receipt-print-stage {
+        display: none;
+      }
+    }
+    @media print {
+      @page {
+        size: ${pageWidth} auto;
+        margin: 0;
+      }
+      body > * {
+        display: none !important;
+      }
+      #receipt-print-stage {
+        display: block !important;
+        position: static !important;
+        width: ${stageWidth} !important;
+        max-width: ${stageWidth} !important;
+        margin: 0 auto !important;
+        padding: 2px 1px !important;
+        background: #fff !important;
+        color: #000 !important;
+        z-index: 9999999 !important;
+        font-family: Arial, 'Segoe UI', Tahoma, sans-serif !important;
+      }
+      #receipt-print-stage,
+      #receipt-print-stage * {
+        font-family: Arial, 'Segoe UI', Tahoma, sans-serif !important;
+        color: #000 !important;
+        box-sizing: border-box !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      #receipt-print-stage table {
+        display: table !important;
+        width: 100% !important;
+      }
+      #receipt-print-stage thead {
+        display: table-header-group !important;
+      }
+      #receipt-print-stage tbody {
+        display: table-row-group !important;
+      }
+      #receipt-print-stage tr {
+        display: table-row !important;
+      }
+      #receipt-print-stage th,
+      #receipt-print-stage td {
+        display: table-cell !important;
+      }
+    }
+  `;
 }
 
-/** HTML cho cụm điều khiển Bluetooth Web BLE */
 function renderBleControlHtml(): string {
   const connected = isBluetoothConnected();
   const devName = getConnectedDeviceName();
@@ -512,12 +643,12 @@ function renderBleControlHtml(): string {
         </div>
         
         <button id="btn-trigger-ble-print" type="button" style="width: 100%; padding: 10px; border-radius: 6px; background: #10b981; color: #0f172a; border: none; font-weight: 900; font-size: 0.92rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
-          <span>⚡</span> IN TIẾP QUA BLUETOOTH (IN NGAY)
+          <span>⚡</span> IN NGAY QUA BLUETOOTH
         </button>
 
         <label style="display: flex; align-items: center; gap: 6px; font-size: 0.73rem; color: #a1a1aa; cursor: pointer; margin-top: 2px;">
           <input type="checkbox" id="chk-ble-auto-disconnect" ${autoDisconnect ? 'checked' : ''} style="cursor: pointer;" />
-          <span>Tự ngắt kết nối sau khi in (để nhả máy cho điện thoại khác)</span>
+          <span>Tự ngắt kết nối sau khi in (nhả máy cho thiết bị khác)</span>
         </label>
       </div>
     `;
@@ -531,20 +662,19 @@ function renderBleControlHtml(): string {
 
       <label style="display: flex; align-items: center; gap: 6px; font-size: 0.73rem; color: #a1a1aa; cursor: pointer;">
         <input type="checkbox" id="chk-ble-auto-disconnect" ${autoDisconnect ? 'checked' : ''} style="cursor: pointer;" />
-        <span>Tự ngắt kết nối sau khi in (để nhả máy cho điện thoại khác)</span>
+        <span>Tự ngắt kết nối sau khi in (nhả máy cho thiết bị khác)</span>
       </label>
     </div>
   `;
 }
 
-/** Gắn sự kiện cho cụm điều khiển Bluetooth */
 function bindBleControlEvents(order: Order) {
   const container = document.getElementById('ble-control-section');
   if (!container) return;
 
   const btnPrint = container.querySelector('#btn-trigger-ble-print');
   btnPrint?.addEventListener('click', async () => {
-    await printViaWebBluetooth(order);
+    await printViaWebBluetooth(order, currentModalMode);
     refreshModalBleUI();
   });
 
@@ -559,7 +689,6 @@ function bindBleControlEvents(order: Order) {
   });
 }
 
-/** Cập nhật giao diện Bluetooth theo thời gian thực nếu modal đang mở */
 function refreshModalBleUI() {
   const container = document.getElementById('ble-control-section');
   if (!container || !currentModalOrder) return;
@@ -567,29 +696,29 @@ function refreshModalBleUI() {
   bindBleControlEvents(currentModalOrder);
 }
 
-/** Đóng hộp thoại in trên màn hình */
 export function closePrintModal() {
   currentModalOrder = null;
   const el = document.getElementById('mobile-print-modal-overlay');
   if (el) el.remove();
 }
 
-/** Hiển thị hộp thoại in hỗ trợ hoàn hảo cho cả iPhone & Android */
-export function showPrintModal(order: Order) {
-  ensurePrintStyles();
+/** Hiển thị hộp thoại Xem trước & In Hóa Đơn / Phiếu Bếp trên MỌI thiết bị (PC, Laptop, iPhone, Android) */
+export function showPrintModal(order: Order, initialMode: PrintDocMode = 'receipt') {
   closePrintModal();
   currentModalOrder = order;
+  currentModalMode = initialMode;
+  let currentPaperSize: PaperSize = getPaperSize();
 
-  // Đặt nội dung vào vùng in @media print
+  ensurePrintStyles(currentPaperSize);
+
   let stage = document.getElementById('receipt-print-stage');
   if (!stage) {
     stage = document.createElement('div');
     stage.id = 'receipt-print-stage';
     document.body.appendChild(stage);
   }
-  stage.innerHTML = generateReceiptHtml(order);
+  stage.innerHTML = generateReceiptHtml(order, currentModalMode, currentPaperSize);
 
-  // Tạo Modal tương tác trên điện thoại
   const modal = document.createElement('div');
   modal.id = 'mobile-print-modal-overlay';
   modal.style.position = 'fixed';
@@ -608,113 +737,235 @@ export function showPrintModal(order: Order) {
   card.style.borderRadius = '14px';
   card.style.border = '1px solid #3f3f46';
   card.style.width = '100%';
-  card.style.maxWidth = '380px';
+  card.style.maxWidth = '430px';
   card.style.maxHeight = '92vh';
   card.style.display = 'flex';
   card.style.flexDirection = 'column';
   card.style.boxShadow = '0 20px 40px rgba(0,0,0,0.6)';
   card.style.overflow = 'hidden';
 
-  card.innerHTML = `
-    <div style="padding: 14px 16px; border-bottom: 1px solid #27272a; display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <div style="font-weight: 800; font-size: 1rem; color: #10b981; display: flex; align-items: center; gap: 6px;">
-          <span>🖨️</span> In Hóa Đơn #${order.id}
+  const renderCardContent = () => {
+    const htmlPreview = generateReceiptHtml(order, currentModalMode, currentPaperSize);
+    if (stage) {
+      ensurePrintStyles(currentPaperSize);
+      stage.innerHTML = htmlPreview;
+    }
+
+    card.innerHTML = `
+      <div style="padding: 12px 16px; border-bottom: 1px solid #27272a; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-weight: 900; font-size: 1.02rem; color: #10b981; display: flex; align-items: center; gap: 6px;">
+            <span>🖨️</span> ${currentModalMode === 'kitchen' ? 'In Phiếu Bếp' : 'In Hóa Đơn'} #${order.id}
+          </div>
+          <div style="font-size: 0.74rem; color: #a1a1aa; margin-top: 2px;">Hỗ trợ Máy tính (USB/LAN), iPhone (AirPrint) & Android (Bluetooth)</div>
         </div>
-        <div style="font-size: 0.75rem; color: #a1a1aa; margin-top: 2px;">Tối ưu máy in nhiệt 58mm EG-58BT</div>
+        <button id="btn-close-print-modal" style="background: rgba(255,255,255,0.08); border: none; color: #e4e4e7; border-radius: 6px; font-size: 1.1rem; cursor: pointer; padding: 4px 10px;">✕</button>
       </div>
-      <button id="btn-close-print-modal" style="background: none; border: none; color: #a1a1aa; font-size: 1.4rem; cursor: pointer; padding: 4px;">✕</button>
-    </div>
 
-    <div style="flex: 1; overflow-y: auto; padding: 14px;">
-      <!-- Khung tùy chọn in đa nền tảng -->
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
-        <button id="btn-trigger-browser-print" style="width: 100%; padding: 10px; border-radius: 8px; background: #10b981; color: #0f172a; border: none; font-weight: 800; font-size: 0.92rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
-          <span>📱</span> In Trình Duyệt / AirPrint (iPhone & PC)
-        </button>
-
-        <button id="btn-trigger-rawbt-print" style="width: 100%; padding: 9px; border-radius: 8px; background: #3b82f6; color: #fff; border: none; font-weight: 700; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
-          <span>🤖</span> In Qua App RawBT (Android Bluetooth)
-        </button>
-
-        <div id="ble-control-section">
-          ${renderBleControlHtml()}
+      <div style="flex: 1; overflow-y: auto; padding: 14px;">
+        <!-- Chuyển đổi chế độ: Hóa đơn khách vs Phiếu bếp & Khổ giấy 58mm vs 80mm -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px;">
+          <button id="btn-mode-receipt" type="button" style="padding: 8px; border-radius: 8px; border: ${currentModalMode === 'receipt' ? '2px solid #10b981' : '1px solid #3f3f46'}; background: ${currentModalMode === 'receipt' ? 'rgba(16,185,129,0.2)' : '#27272a'}; color: #fff; font-weight: 800; font-size: 0.82rem; cursor: pointer;">
+            🧾 Hóa Đơn Khách
+          </button>
+          <button id="btn-mode-kitchen" type="button" style="padding: 8px; border-radius: 8px; border: ${currentModalMode === 'kitchen' ? '2px solid #f59e0b' : '1px solid #3f3f46'}; background: ${currentModalMode === 'kitchen' ? 'rgba(245,158,11,0.22)' : '#27272a'}; color: #fff; font-weight: 800; font-size: 0.82rem; cursor: pointer;">
+            👨‍🍳 Phiếu Bếp (Chữ To)
+          </button>
         </div>
 
-        <button id="btn-copy-receipt-text" style="width: 100%; padding: 8px; border-radius: 8px; background: #27272a; color: #e4e4e7; border: 1px solid #3f3f46; font-weight: 600; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;">
-          <span>📋</span> Sao Chép Nội Dung Bill (Gửi Zalo / App)
-        </button>
-      </div>
+        <div style="display: flex; gap: 6px; margin-bottom: 12px; align-items: center; justify-content: space-between; background: #27272a; padding: 6px 10px; border-radius: 8px;">
+          <span style="font-size: 0.78rem; color: #cbd5e1; font-weight: 600;">📏 Khổ giấy máy in:</span>
+          <div style="display: flex; gap: 6px;">
+            <button id="btn-size-58" type="button" style="padding: 4px 10px; border-radius: 6px; border: none; background: ${currentPaperSize === '58' ? '#10b981' : '#3f3f46'}; color: ${currentPaperSize === '58' ? '#0f172a' : '#fff'}; font-weight: 800; font-size: 0.76rem; cursor: pointer;">
+              K58 (58mm)
+            </button>
+            <button id="btn-size-80" type="button" style="padding: 4px 10px; border-radius: 6px; border: none; background: ${currentPaperSize === '80' ? '#10b981' : '#3f3f46'}; color: ${currentPaperSize === '80' ? '#0f172a' : '#fff'}; font-weight: 800; font-size: 0.76rem; cursor: pointer;">
+              K80 (80mm)
+            </button>
+          </div>
+        </div>
 
-      <!-- Bản xem trước Bill 58mm -->
-      <div style="background: #fff; border-radius: 8px; padding: 8px 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); overflow: hidden;">
-        <div style="text-align: center; font-size: 0.7rem; color: #666; margin-bottom: 4px; font-weight: 600;">— XEM TRƯỚC HÓA ĐƠN 58MM —</div>
-        ${generateReceiptHtml(order)}
-      </div>
-    </div>
-  `;
+        <!-- Khung tùy chọn in đa nền tảng -->
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+          <button id="btn-trigger-browser-print" style="width: 100%; padding: 11px; border-radius: 8px; background: #10b981; color: #0f172a; border: none; font-weight: 900; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+            <span>🖨️</span> IN NGAY (Máy Tính USB/LAN · iPhone AirPrint)
+          </button>
 
+          <div id="ble-control-section">
+            ${renderBleControlHtml()}
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button id="btn-trigger-rawbt-print" style="width: 100%; padding: 8px; border-radius: 8px; background: #3b82f6; color: #fff; border: none; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer;">
+              <span>🤖</span> App RawBT (Android)
+            </button>
+            <button id="btn-copy-receipt-text" style="width: 100%; padding: 8px; border-radius: 8px; background: #27272a; color: #e4e4e7; border: 1px solid #3f3f46; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer;">
+              <span>📋</span> Copy Gửi Zalo
+            </button>
+          </div>
+        </div>
+
+        <!-- Bản xem trước Bill -->
+        <div style="background: #fff; border-radius: 8px; padding: 10px 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); overflow-x: auto;">
+          <div style="text-align: center; font-size: 0.7rem; color: #666; margin-bottom: 4px; font-weight: 700;">
+            — BẢN XEM TRƯỚC (${currentPaperSize}MM - ${currentModalMode === 'kitchen' ? 'PHIẾU BẾP' : 'HÓA ĐƠN KHÁCH'}) —
+          </div>
+          ${htmlPreview}
+        </div>
+      </div>
+    `;
+
+    card.querySelector('#btn-close-print-modal')?.addEventListener('click', closePrintModal);
+
+    card.querySelector('#btn-mode-receipt')?.addEventListener('click', () => {
+      currentModalMode = 'receipt';
+      renderCardContent();
+    });
+
+    card.querySelector('#btn-mode-kitchen')?.addEventListener('click', () => {
+      currentModalMode = 'kitchen';
+      renderCardContent();
+    });
+
+    card.querySelector('#btn-size-58')?.addEventListener('click', () => {
+      currentPaperSize = '58';
+      setPaperSize('58');
+      renderCardContent();
+    });
+
+    card.querySelector('#btn-size-80')?.addEventListener('click', () => {
+      currentPaperSize = '80';
+      setPaperSize('80');
+      renderCardContent();
+    });
+
+    card.querySelector('#btn-trigger-browser-print')?.addEventListener('click', () => {
+      window.print();
+    });
+
+    card.querySelector('#btn-trigger-rawbt-print')?.addEventListener('click', () => {
+      printViaRawBT(order, currentModalMode);
+    });
+
+    bindBleControlEvents(order);
+
+    card.querySelector('#btn-copy-receipt-text')?.addEventListener('click', () => {
+      const text = generateReceiptPlainText(order, currentModalMode);
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('Đã sao chép nội dung phiếu vào bộ nhớ tạm! Bạn có thể dán vào Zalo hoặc app in.');
+        }).catch(() => {
+          prompt('Sao chép nội dung bên dưới:', text);
+        });
+      } else {
+        prompt('Sao chép nội dung bên dưới:', text);
+      }
+    });
+  };
+
+  renderCardContent();
   modal.appendChild(card);
   document.body.appendChild(modal);
 
-  // Xử lý các sự kiện nút bấm
-  modal.querySelector('#btn-close-print-modal')?.addEventListener('click', closePrintModal);
   modal.addEventListener('click', (e) => {
     if (e.target === modal) closePrintModal();
-  });
-
-  // 1. In trình duyệt / AirPrint
-  modal.querySelector('#btn-trigger-browser-print')?.addEventListener('click', () => {
-    window.print();
-  });
-
-  // 2. In qua RawBT (Android)
-  modal.querySelector('#btn-trigger-rawbt-print')?.addEventListener('click', () => {
-    printViaRawBT(order);
-  });
-
-  // 3. Khởi tạo sự kiện cho BLE section
-  bindBleControlEvents(order);
-
-  // 4. Sao chép text
-  modal.querySelector('#btn-copy-receipt-text')?.addEventListener('click', () => {
-    const text = generateReceiptPlainText(order);
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(() => {
-        alert('Đã sao chép nội dung hóa đơn vào bộ nhớ tạm! Bạn có thể dán vào Zalo hoặc app in Bluetooth.');
-      }).catch(() => {
-        prompt('Sao chép nội dung bên dưới:', text);
-      });
-    } else {
-      prompt('Sao chép nội dung bên dưới:', text);
-    }
   });
 }
 
 /**
- * Hàm gọi in chính:
- * - Trên điện thoại (iPhone/Android): Mở hộp thoại In Đa Năng tương thích 100% không bị chặn.
- * - Trên máy tính (PC): Tự động mở hộp thoại in của trình duyệt và lưu nội dung sẵn sàng.
+ * Hàm gọi in chính (Hoạt động trên MỌI thiết bị: PC, Laptop, iPad, Điện thoại):
+ * Mở hộp thoại Xem trước & Chọn chế độ in (Hóa đơn khách / Phiếu bếp / Bluetooth / Trình duyệt).
  */
-export function printReceipt(order: Order) {
-  // Khi ở chế độ máy tính (Desktop / Màn hình rộng >= 768px hoặc PC): Không hiển thị / thực thi các chức năng in bill
-  if (isComputerMode()) {
-    console.log('Chế độ máy tính: Bỏ qua và không hiển thị các chức năng in hóa đơn.');
-    return;
-  }
+export function printReceipt(order: Order, mode: PrintDocMode = 'receipt') {
+  const paperSize = getPaperSize();
+  ensurePrintStyles(paperSize);
 
-  localStorage.setItem('printer_size', '58');
-  ensurePrintStyles();
-
-  // Đặt nội dung vào vùng in
   let stage = document.getElementById('receipt-print-stage');
   if (!stage) {
     stage = document.createElement('div');
     stage.id = 'receipt-print-stage';
     document.body.appendChild(stage);
   }
-  stage.innerHTML = generateReceiptHtml(order);
+  stage.innerHTML = generateReceiptHtml(order, mode, paperSize);
 
-  // Trên thiết bị di động (iPhone/Android): Luôn hiển thị Modal để người dùng chọn cách in thuận tiện nhất
-  showPrintModal(order);
+  showPrintModal(order, mode);
+}
+
+/**
+ * In Báo Cáo Kết Ca / Chốt Ca (Z-Report) ra máy in hóa đơn 58mm/80mm
+ */
+export function printShiftReport(params: {
+  staff: string;
+  shift: Shift;
+  ordersCount: number;
+  revenue: number;
+  cash: number;
+  bank: number;
+  app?: number;
+  expenseTotal?: number;
+  note?: string;
+}) {
+  const paperSize = getPaperSize();
+  const widthMm = paperSize === '80' ? '72mm' : '48mm';
+  ensurePrintStyles(paperSize);
+
+  const nowStr = new Date().toLocaleString('vi-VN');
+  const netCashInDrawer = Math.max(0, (params.cash || 0) - (params.expenseTotal || 0));
+
+  const html = `
+    <div style="width: ${widthMm}; max-width: ${widthMm}; margin: 0 auto; padding: 3px 2px; color: #000; background: #fff; font-family: Arial, sans-serif; font-size: 11.5px; line-height: 1.35;">
+      <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 5px;">
+        <div style="font-size: 14px; font-weight: 900;">${BRAND_NAME}</div>
+        <div style="font-size: 13px; font-weight: 900; margin-top: 2px;">📋 PHIẾU CHỐT KẾT CA</div>
+        <div style="font-size: 10px;">${nowStr}</div>
+      </div>
+      <div style="border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 4px;">
+        <div>Nhân viên trực: <strong>${params.staff || 'Thu ngân'}</strong></div>
+        <div>Ca làm việc: <strong>${shiftLabel(params.shift)}</strong></div>
+        <div>Tổng số đơn trong ca: <strong>${params.ordersCount} đơn</strong></div>
+      </div>
+      <div style="border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 4px;">
+        <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 12.5px;">
+          <span>TỔNG DOANH THU CA:</span>
+          <span>${fmtPrintHtmlVND(params.revenue)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 2px;">
+          <span>• Thu Tiền mặt:</span>
+          <span>${fmtPrintHtmlVND(params.cash)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 2px;">
+          <span>• Thu Chuyển khoản QR:</span>
+          <span>${fmtPrintHtmlVND(params.bank)}</span>
+        </div>
+        ${params.app ? `
+        <div style="display: flex; justify-content: space-between; margin-top: 2px;">
+          <span>• Thu Đơn App:</span>
+          <span>${fmtPrintHtmlVND(params.app)}</span>
+        </div>` : ''}
+        <div style="display: flex; justify-content: space-between; margin-top: 2px;">
+          <span>• Chi đi chợ trong ca:</span>
+          <span>-${fmtPrintHtmlVND(params.expenseTotal || 0)}</span>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 900; padding: 3px 0; border-bottom: 2px solid #000;">
+        <span>TIỀN MẶT BÀN GIAO:</span>
+        <span>${fmtPrintHtmlVND(netCashInDrawer)}</span>
+      </div>
+      ${params.note ? `<div style="margin-top: 4px; font-size: 10.5px;">* Ghi chú: ${params.note}</div>` : ''}
+      <div style="display: flex; justify-content: space-between; margin-top: 14px; font-size: 10px; text-align: center;">
+        <div style="width: 48%;"><strong>NV Giao Ca</strong><br/><br/><br/>(Ký tên)</div>
+        <div style="width: 48%;"><strong>Quản Lý Nhận</strong><br/><br/><br/>(Ký tên)</div>
+      </div>
+      <div style="height: 12px;"></div>
+    </div>
+  `;
+
+  let stage = document.getElementById('receipt-print-stage');
+  if (!stage) {
+    stage = document.createElement('div');
+    stage.id = 'receipt-print-stage';
+    document.body.appendChild(stage);
+  }
+  stage.innerHTML = html;
+  window.print();
 }

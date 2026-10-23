@@ -351,6 +351,10 @@ export interface Order {
   shift: Shift;
   lines: OrderLine[];
   total: number;
+  discount?: number;
+  surcharge?: number;
+  customerPhone?: string;
+  customerAddress?: string;
   cash?: number;
   change?: number;
   note?: string;
@@ -837,3 +841,167 @@ export function markTableOrderHandled(orderId: string): void {
     localStorage.setItem(HANDLED_TABLE_ORDERS_KEY, JSON.stringify(Array.from(set)));
   } catch {}
 }
+
+export interface BankConfig {
+  bankBin: string;
+  bankName: string;
+  accountNo: string;
+  accountName: string;
+  showQrOnBill: boolean;
+}
+
+export const BANK_CONFIG_KEY = 'fastfood_7a_bank_config_v1';
+
+export const POPULAR_BANKS = [
+  { bin: 'MB', name: 'MBBank (Quân Đội)' },
+  { bin: 'VCB', name: 'Vietcombank' },
+  { bin: 'TCB', name: 'Techcombank' },
+  { bin: 'ACB', name: 'ACB (Á Châu)' },
+  { bin: 'CTG', name: 'VietinBank' },
+  { bin: 'BIDV', name: 'BIDV' },
+  { bin: 'VPB', name: 'VPBank' },
+  { bin: 'TPB', name: 'TPBank' },
+  { bin: 'STB', name: 'Sacombank' },
+  { bin: 'VBA', name: 'Agribank' },
+];
+
+export function getBankConfig(): BankConfig {
+  try {
+    const raw = localStorage.getItem(BANK_CONFIG_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.bankBin) return parsed;
+    }
+  } catch {}
+  return {
+    bankBin: 'MB',
+    bankName: 'MBBank (Quân Đội)',
+    accountNo: '0931811872',
+    accountName: 'FOOD STATION 7A',
+    showQrOnBill: true
+  };
+}
+
+export function saveBankConfig(cfg: BankConfig): void {
+  try {
+    localStorage.setItem(BANK_CONFIG_KEY, JSON.stringify(cfg));
+    window.dispatchEvent(new Event(CONFIG_CHANGED_EVENT));
+  } catch {}
+}
+
+export function getVietQrUrl(amount: number, orderId?: string): string {
+  const cfg = getBankConfig();
+  if (!cfg.accountNo) return '';
+  const cleanAmt = Math.max(0, Math.round(amount || 0));
+  const info = encodeURIComponent(orderId ? `TT ${orderId}` : 'FOOD STATION 7A');
+  const accName = encodeURIComponent(cfg.accountName || 'FOOD STATION 7A');
+  return `https://img.vietqr.io/image/${cfg.bankBin}-${cfg.accountNo.trim()}-compact2.png?amount=${cleanAmt}&addInfo=${info}&accountName=${accName}`;
+}
+
+export interface SopRecipeItem {
+  id: string;
+  category: string;
+  title: string;
+  prepTime: string;
+  temperature: string;
+  ingredients: string[];
+  steps: string[];
+  note: string;
+}
+
+export const SOP_RECIPES: SopRecipeItem[] = [
+  {
+    id: 'sop-1',
+    category: '🍛 Bếp Nóng Wok (40K)',
+    title: 'Cơm Gà Xối Mỡ & Cơm Gà Mắm Tỏi (Chuẩn Da Giòn)',
+    prepTime: '90 – 120 giây',
+    temperature: 'Bếp chiên nhúng: 170°C',
+    ingredients: [
+      'Đùi gà góc tư (hoặc má đùi lớn): 1 miếng (~210g - 230g đã luộc sơ 70% với gừng, nghệ, muối)',
+      'Cơm chiên đỏ (gạo nở xốp rang bơ tỏi + màu điều/gấc): 220g (1 chén đầy)',
+      'Đồ chua (cà rốt + củ cải ngâm chua ngọt) + Dưa leo + Xà lách: 50g',
+      'Nước chấm: 1 túi sốt mắm tỏi ớt kẹo hoặc tương ớt + nước tương (30ml)'
+    ],
+    steps: [
+      'Thả đùi gà đã ráo nước vào rổ bếp chiên nhúng ở 170°C trong 2 phút, dùng muỗng xối dầu sôi liên tục lên mặt da để da phồng giòn rụm.',
+      'Nếu khách gọi Gà Mắm Tỏi: Vớt gà ra chặt miếng vừa ăn, đảo nhanh 15 giây trên chảo với 1 muỗng canh sốt mắm tỏi bơ đường.',
+      'Đơm 1 chén cơm chiên nóng vào hộp 3 ngăn, xếp gà + dưa leo + đồ chua + 1 bịch canh rong biển/cải ngọt.'
+    ],
+    note: 'Tuyệt đối để gà thật ráo trước khi thả vào dầu để không bắn dầu và giữ lớp da giòn lâu khi mang về.'
+  },
+  {
+    id: 'sop-2',
+    category: '🍛 Bếp Nóng Wok (40K)',
+    title: 'Cơm Bò Lúc Lắc / Bò Xào Rau Củ / Sườn Chua Ngọt',
+    prepTime: '90 – 120 giây',
+    temperature: 'Bếp khè Wok: Lửa lớn tối đa',
+    ingredients: [
+      'Thịt bò thăn/vai mềm thái vuông 2x2cm (đã ướp dầu hào, tỏi, tiêu, dầu ăn): 85g - 90g/phần',
+      'Ớt chuông xanh/đỏ + Hành tây thái vuông (hoặc cải ngọt, bông cải): 80g',
+      'Cơm chiên trứng hoặc Cơm trắng nóng: 220g',
+      'Sốt xào chuẩn: 1 muỗng canh sốt tổng hợp (dầu hào + nước tương + tương cà + chút đường + tiêu)'
+    ],
+    steps: [
+      'Đun chảo Wok thật nóng, cho 1 muỗng dầu tỏi phi, trút ớt chuông + hành tây vào đảo 20 giây cho dậy mùi khói (Wok Hei).',
+      'Cho thịt bò + 1 muỗng sốt xào vào lắc lửa lớn đúng 35 - 45 giây cho bò vừa chín tới mềm ngọt (không xào quá 1 phút bò sẽ dai).',
+      'Múc ra khay hộp cơm 3 ngăn, rắc tiêu xay và hành ngò.'
+    ],
+    note: 'Thịt bò chia sẵn từng túi/khay định lượng 85g-90g trong tủ mát để giờ cao điểm trưa chỉ việc trút vào chảo.'
+  },
+  {
+    id: 'sop-3',
+    category: '🍜 Mì & Hủ Tiếu Xào (40K)',
+    title: 'Mì Xào Hải Sản / Mì Giòn / Hủ Tiếu Xào Bò',
+    prepTime: '90 – 120 giây',
+    temperature: 'Bếp khè Wok: Lửa lớn',
+    ingredients: [
+      'Mì vắt (2 vắt trụng vừa tới xả qua nước lạnh trộn chút dầu) hoặc Hủ tiếu dai: 160g',
+      'Tôm bóc vỏ (3 con) + Mực khứa vảy rồng (45g) hoặc Thịt bò (80g)',
+      'Cải ngọt + Cải thìa + Cà rốt tỉa hoa + Giá hẹ: 100g',
+      'Sốt xào mì: 1.5 muỗng canh sốt dầu hào hải sản (nếu làm Mì Giòn thì pha thêm chút bột năng tạo độ sánh)'
+    ],
+    steps: [
+      'Áp chảo mì/hủ tiếu trên chảo gang lửa lớn 30 giây cho sợi mì săn thơm mùi chảo.',
+      'Phi tỏi, xào tôm mực/bò cùng rau cải + sốt xào trong 45 giây, sau đó đảo đều với mì (hoặc rưới lên vắt mì chiên giòn).',
+      'Đóng hộp kèm nước tương ớt cắt lát.'
+    ],
+    note: 'Với Mì Xào Giòn mang về: Luôn để vắt mì chiên giòn vào túi riêng và nước sốt hải sản vào hộp/túi riêng để không bị ỉu!'
+  },
+  {
+    id: 'sop-4',
+    category: '🥟 Quầy FastFood (18K – 26K)',
+    title: 'Bánh Bao Kẹp (BBK) Xúc Xích · Gà Rán · Tôm Phô Mai · Sườn BBQ',
+    prepTime: '45 – 60 giây',
+    temperature: 'Nồi hấp: 95°C | Bếp chiên/NCKD: 170°C',
+    ingredients: [
+      'Vỏ bánh bao kẹp (vỏ bánh cắt đôi hình vỏ sò): 1 cái (giữ nóng trong xửng hấp có lót màng lưới chống dính)',
+      'Nhân tùy chọn: 1 cây xúc xích khía (18K) / 1 miếng gà rán giòn 65g (20K) / 1 miếng chả tôm 70g (24K) + 1 lát phô mai (26K) / Sườn BBQ (25K)',
+      'Rau kèm: 1 lá xà lách tươi + 2 lát dưa leo + đồ chua sợi',
+      'Sốt đặc trưng: Xịt ziczac Tương ớt + Sốt Mayonnaise + Sốt phô mai/BBQ'
+    ],
+    steps: [
+      'Lấy vỏ bánh bao nóng từ xửng hấp ra bằng kẹp gắp inox.',
+      'Lót xà lách + dưa leo vào lòng bánh, đặt nhân vừa chiên giòn (xúc xích/gà/tôm/sườn) + lát phô mai lên khi nhân còn nóng để phô mai tan chảy.',
+      'Xịt sốt tương ớt + mayo, cho vào túi giấy thấm dầu giao khách ngay trong 60 giây.'
+    ],
+    note: 'Luôn đậy nắp nồi hấp và kiểm tra mực nước dưới đáy xửng mỗi 2 tiếng để vỏ bánh bao trắng mềm, không bị khô mặt.'
+  },
+  {
+    id: 'sop-5',
+    category: '🍔 FastFood & Ăn Vặt (20K – 40K)',
+    title: 'Mì Cay 7 Cấp Độ · Mì Trộn Thập Cẩm · Hamburger · Bánh Tráng Trộn',
+    prepTime: '2 – 3 phút',
+    temperature: 'Bếp đơn / Nồi chiên không dầu 180°C',
+    ingredients: [
+      'Mì Cay (40K): 1 gói mì Koreno + 450ml nước dùng kim chi chua cay + Bò/Tôm/Mực/Cá viên/Xúc xích + Nấm kim châm + Bông cải + Bắp cải tím',
+      'Mì Trộn (30K): 2 vắt mì + 1.5 muỗng sốt trộn chua ngọt cay + Xúc xích + Gà rán cắt lát + Trứng ốp la lòng đào',
+      'Hamburger (28K): Vỏ bánh burger nướng ấm 30s trong nồi chiên không dầu + Nhân bò/gà giòn + Phô mai + Xà lách + Cà chua'
+    ],
+    steps: [
+      'Định lượng ớt cấp độ Mì Cay: Cấp 0 (không ớt), Cấp 1 (1/2 muỗng cà phê sốt ớt Hàn Quốc), Cấp 2 (1 muỗng), Cấp 3 (1.5 muỗng)...',
+      'Nấu nước dùng sôi bùng, thả hải sản/bò + rau nấm + mì Koreno nấu đúng 2 phút 30 giây là tắt bếp để sợi mì dai ngon.'
+    ],
+    note: 'Cốt nước dùng kim chi nấu sẵn 1 nồi 5 lít vào đầu ca chiều (15h30) để ca tối múc ra nấu siêu tốc.'
+  }
+];
+

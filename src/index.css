@@ -137,10 +137,9 @@ h1, h2, h3, .title, .btn-primary {
 @keyframes blinker { 50% { opacity: 0; } } .blink { animation: blinker 1s linear infinite; }
 
 
-/* Ẩn toàn bộ chức năng in bill khi mở ở chế độ máy tính (Desktop / Màn hình >= 768px) */
-@media (min-width: 768px) {
-  .mobile-only-print,
-  .print-feature-mobile-only {
-    display: none !important;
-  }
+/* Hỗ trợ hiển thị nút in bill trên cả Máy tính, Tablet và Điện thoại */
+.mobile-only-print,
+.print-feature-mobile-only {
+  display: inline-flex;
 }
+

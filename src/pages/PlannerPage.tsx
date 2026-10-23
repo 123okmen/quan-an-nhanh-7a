@@ -16,9 +16,11 @@ import {
   normalizeShift,
   isOrderFromOpening,
   computeOrderCost,
+  getShift,
   OFFICIAL_OPENING_DATE
 } from '../lib/store';
 import type { Order, Shift, Expense } from '../lib/store';
+import { printReceipt, printShiftReport } from '../utils/print';
 import './PlannerPage.css';
 
 interface DailyStat {
@@ -628,6 +630,25 @@ export default function PlannerPage() {
               title="Xuất toàn bộ đơn hàng & chi phí ra file Excel CSV"
             >
               📥 Xuất Báo Cáo (.CSV)
+            </button>
+
+            <button
+              className="rpt-btn-refresh"
+              onClick={() => printShiftReport({
+                staff: 'Quản lý / Tổng kết ngày',
+                shift: getShift(),
+                ordersCount: todayMetrics.orderCount,
+                revenue: todayMetrics.revenue,
+                cash: todayMetrics.cash,
+                bank: todayMetrics.bank,
+                app: todayMetrics.app,
+                expenseTotal: todayMetrics.expenseToday,
+                note: `Lãi gộp định mức: ${fmtVND(todayMetrics.grossProfit)}`
+              })}
+              style={{ background: 'rgba(245, 158, 11, 0.22)', color: '#fde047', borderColor: '#f59e0b' }}
+              title="In phiếu tổng kết doanh thu & chi phí hôm nay ra máy in nhiệt"
+            >
+              🖨️ In Phiếu Tổng Kết
             </button>
 
             {!isShareholderMode && (
@@ -1305,6 +1326,7 @@ export default function PlannerPage() {
                       <th style={{ textAlign: 'center' }}>Nguồn Gốc</th>
                       <th style={{ textAlign: 'right' }}>Tổng Tiền</th>
                       <th style={{ textAlign: 'center' }}>Hình Thức TT</th>
+                      <th style={{ textAlign: 'center' }}>In Lại Bill</th>
                       <th style={{ textAlign: 'center' }}>Đồng Bộ</th>
                     </tr>
                   </thead>
@@ -1317,6 +1339,7 @@ export default function PlannerPage() {
                       let origin = o.source || '';
                       if (!origin) {
                         if (o.orderType === 'mang-ve') origin = '📦 Mang Về';
+                        else if (o.orderType === 'giao-hang') origin = '🛵 Giao Hàng';
                         else if (o.paymentMethod === 'app') origin = '🛵 App Onl (Grab/Shopee)';
                         else if (o.tableNo) origin = '📱 QR Bàn';
                         else origin = '💻 Tại Quầy';
@@ -1344,6 +1367,26 @@ export default function PlannerPage() {
                             {normalizePaymentMethod(o.paymentMethod) === 'chuyenkhoan' && <span className="rpt-badge rpt-badge-bank">Chuyển Khoản</span>}
                             {normalizePaymentMethod(o.paymentMethod) === 'app' && <span className="rpt-badge rpt-badge-app">Đơn App</span>}
                             {normalizePaymentMethod(o.paymentMethod) === 'tienmat' && <span className="rpt-badge rpt-badge-cash">Tiền Mặt</span>}
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => printReceipt(o, 'receipt')}
+                                style={{ background: '#10b981', color: '#0f172a', border: 'none', borderRadius: '5px', padding: '3px 8px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}
+                                title="In lại Hóa Đơn Khách"
+                              >
+                                🖨️ Bill
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => printReceipt(o, 'kitchen')}
+                                style={{ background: '#f59e0b', color: '#0f172a', border: 'none', borderRadius: '5px', padding: '3px 8px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}
+                                title="In Phiếu Bếp"
+                              >
+                                👨‍🍳 Bếp
+                              </button>
+                            </div>
                           </td>
                           <td style={{ textAlign: 'center' }}>
                             {o.synced ? (

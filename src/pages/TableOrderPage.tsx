@@ -3,8 +3,10 @@ import MenuItemCard from '../components/MenuItemCard';
 import {
   CATEGORIES, MENU, STORE_ADDRESS, STORE_HOTLINE,
   getShift, newOrderId, saveOrder, syncTableOrder, fmtVND,
+  getBankConfig, getVietQrUrl
 } from '../lib/store';
-import type { Category, MenuItem, Order, OrderLine, OrderType } from '../lib/store';
+import type { Category, MenuItem, Order, OrderLine, OrderType, PaymentMethod } from '../lib/store';
+import { printReceipt } from '../utils/print';
 import './TableOrderPage.css';
 
 const TABLE_COUNT = 20;
@@ -12,11 +14,15 @@ const QUICK_NOTES = [
   'Không cay',
   'Ít cay',
   'Cay nhiều',
+  'Cấp 0',
+  'Cấp 1',
+  'Cấp 2',
+  'Cấp 3',
   'Không hành',
   'Nhiều sốt',
   'Để sốt riêng',
   'Trứng chín kỹ',
-  'Ít dầu mỡ'
+  'Da giòn nhiều'
 ];
 
 function tableFromUrl(): number | '' {
@@ -27,9 +33,13 @@ function tableFromUrl(): number | '' {
 
 export default function TableOrderPage() {
   const [activeCat, setActiveCat] = useState<Category | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<OrderLine[]>([]);
   const [tableNo, setTableNo] = useState<number | ''>(tableFromUrl);
   const [orderType, setOrderType] = useState<OrderType>('tai-quan');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('tienmat');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
   const [note, setNote] = useState('');
   const [sending, setSending] = useState(false);
   const [sentOrder, setSentOrder] = useState<Order | null>(null);
@@ -39,6 +49,7 @@ export default function TableOrderPage() {
   const qtyById = useMemo(() => Object.fromEntries(cart.map(l => [l.id, l.qty])), [cart]);
   const total = useMemo(() => cart.reduce((s, l) => s + l.price * l.qty, 0), [cart]);
   const itemCount = useMemo(() => cart.reduce((s, l) => s + l.qty, 0), [cart]);
+  const bankCfg = useMemo(() => getBankConfig(), []);
 
   const addItem = (item: MenuItem) => {
     setCart(prev => {
@@ -66,20 +77,41 @@ export default function TableOrderPage() {
   const submit = async () => {
     if (cart.length === 0) return;
     if (orderType === 'tai-quan' && !tableNo) {
-      alert('Vui lòng chọn số bàn bạn đang ngồi (hoặc chọn Mang về)!');
+      alert('Vui lòng chọn số bàn bạn đang ngồi (hoặc chọn Mang về / Giao tận nơi)!');
       return;
     }
+    if (orderType === 'giao-hang' && (!customerPhone.trim() || !customerAddress.trim())) {
+      alert('Vui lòng nhập Số điện thoại và Địa chỉ nhận hàng để quán giao tận nơi nhé!');
+      return;
+    }
+
     setSending(true);
+    const staffLabel =
+      orderType === 'tai-quan'
+        ? `Khách - Bàn ${tableNo}`
+        : orderType === 'giao-hang'
+        ? `Giao hàng - ${customerPhone.trim()}`
+        : `Khách - Mang về${customerPhone.trim() ? ` (${customerPhone.trim()})` : ''}`;
+
+    const fullNote = [
+      note.trim(),
+      customerPhone.trim() ? `SĐT: ${customerPhone.trim()}` : '',
+      customerAddress.trim() ? `ĐC: ${customerAddress.trim()}` : ''
+    ].filter(Boolean).join(' | ');
+
     const order: Order = {
       id: newOrderId(),
       time: new Date().toISOString(),
       tableNo: orderType === 'tai-quan' ? Number(tableNo) : undefined,
       orderType,
-      staff: orderType === 'tai-quan' ? `Khách - Bàn ${tableNo}` : 'Khách - Mang về',
+      paymentMethod,
+      customerPhone: customerPhone.trim() || undefined,
+      customerAddress: customerAddress.trim() || undefined,
+      staff: staffLabel,
       shift: getShift(),
       lines: cart,
       total,
-      note: note.trim() || undefined,
+      note: fullNote || undefined,
       synced: false,
     };
     saveOrder(order);
@@ -96,6 +128,7 @@ export default function TableOrderPage() {
   };
 
   if (sentOrder) {
+    const qrUrl = getVietQrUrl(sentOrder.total, sentOrder.id);
     return (
       <div className="tor">
         <div className="glass-panel tor-done">
@@ -103,12 +136,18 @@ export default function TableOrderPage() {
           <h2>{sendFailed ? 'Đã lưu đơn trên máy!' : 'Đã gửi đơn vào bếp!'}</h2>
           <p className="tor-muted">
             {sendFailed
-              ? 'Đơn đã được lưu. Vui lòng đưa màn hình này cho nhân viên quầy hoặc thử gửi lại.'
-              : 'Bếp đang chế biến nóng hổi. Bạn thanh toán tại quầy khi nhận món hoặc sau khi dùng xong nhé!'}
+              ? 'Đơn đã được lưu. Vui lòng đưa màn hình này cho nhân viên quầy hoặc bấm In Phiếu bên dưới.'
+              : 'Bếp đang chế biến nóng hổi. Bạn có thể thanh toán tiền mặt hoặc quét mã QR chuyển khoản bên dưới nhé!'}
           </p>
           <div className="tor-done__meta">
-            <span>Mã đơn: <strong>{sentOrder.id}</strong></span>
-            <span>{sentOrder.tableNo ? `Bàn ${sentOrder.tableNo}` : 'Mang về'}</span>
+            <span>Mã đơn: <strong>#{sentOrder.id}</strong></span>
+            <span>
+              {sentOrder.tableNo
+                ? `🪑 Bàn ${sentOrder.tableNo}`
+                : sentOrder.orderType === 'giao-hang'
+                ? '🛵 Giao tận nơi'
+                : '🥡 Mang về'}
+            </span>
           </div>
           <ul className="tor-done__lines">
             {sentOrder.lines.map(l => (
@@ -118,17 +157,34 @@ export default function TableOrderPage() {
               </li>
             ))}
           </ul>
-          {sentOrder.note && <p className="tor-muted">Ghi chú: {sentOrder.note}</p>}
-          <div className="tor-total"><span>Tổng tạm tính</span><strong>{fmtVND(sentOrder.total)}</strong></div>
-          <div className="tor-done__actions">
-            {sendFailed && (
-              <button className="btn-primary" disabled={sending} onClick={() => { setSentOrder(null); }}>
-                ↩️ Quay lại / Gọi thêm
-              </button>
-            )}
-            {!sendFailed && (
-              <button className="btn-primary" onClick={() => setSentOrder(null)}>➕ Gọi thêm món</button>
-            )}
+          {sentOrder.note && <p className="tor-muted">📌 Ghi chú: {sentOrder.note}</p>}
+          <div className="tor-total"><span>Tổng thanh toán</span><strong>{fmtVND(sentOrder.total)}</strong></div>
+
+          {/* Hiển thị mã QR VietQR thanh toán nhanh */}
+          {qrUrl && (
+            <div style={{ background: '#fff', color: '#0f172a', padding: '12px', borderRadius: '12px', margin: '12px auto', maxWidth: '280px', textAlign: 'center' }}>
+              <div style={{ fontWeight: 900, fontSize: '0.82rem', color: '#1e3a8a', marginBottom: '4px' }}>
+                💳 QUÉT MÃ QR CHUYỂN KHOẢN ({fmtVND(sentOrder.total)})
+              </div>
+              <img src={qrUrl} alt="VietQR" style={{ width: '175px', height: 'auto', display: 'block', margin: '0 auto', borderRadius: '6px' }} />
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, marginTop: '4px', color: '#334155' }}>
+                {bankCfg.bankName} • <strong>{bankCfg.accountNo}</strong><br />
+                {bankCfg.accountName}
+              </div>
+            </div>
+          )}
+
+          <div className="tor-done__actions" style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              className="btn-primary"
+              style={{ background: '#10b981', color: '#0f172a' }}
+              onClick={() => printReceipt(sentOrder, 'receipt')}
+            >
+              🖨️ Xem / In Hóa Đơn
+            </button>
+            <button className="btn-primary" onClick={() => setSentOrder(null)}>
+              ➕ Gọi thêm món mới
+            </button>
           </div>
         </div>
       </div>
@@ -141,8 +197,8 @@ export default function TableOrderPage() {
       <section
         className="glass-panel"
         style={{
-          marginBottom: '1.25rem',
-          padding: '1.2rem 1.4rem',
+          marginBottom: '1.1rem',
+          padding: '1.1rem 1.4rem',
           background: 'linear-gradient(135deg, rgba(227, 24, 55, 0.22) 0%, rgba(245, 158, 11, 0.16) 50%, rgba(15, 23, 42, 0.92) 100%)',
           border: '1px solid rgba(245, 158, 11, 0.45)',
           display: 'flex',
@@ -161,7 +217,7 @@ export default function TableOrderPage() {
               🥟 Bánh Bao Kẹp 18K - 26K · 🍛 Cơm Chiên Trứng 25K · 🍗 Cơm/Mì Xào 40K
             </span>
           </div>
-          <h1 style={{ margin: '0.5rem 0 0.25rem 0', fontSize: '1.55rem', color: '#fbbf24', letterSpacing: '0.5px' }}>
+          <h1 style={{ margin: '0.5rem 0 0.25rem 0', fontSize: '1.5rem', color: '#fbbf24', letterSpacing: '0.5px' }}>
             🍔 QUÁN ĂN NHANH 7A PHƯỚC THIỆN — CƠM CHIÊN · MÌ XÀO · BÁNH BAO KẸP
           </h1>
           <div style={{ fontSize: '0.85rem', color: '#cbd5e1', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
@@ -171,49 +227,94 @@ export default function TableOrderPage() {
         </div>
       </section>
 
-      <div className="tor-chips" role="tablist" aria-label="Danh mục món">
-        <button className={activeCat === 'all' ? 'tor-chip active' : 'tor-chip'} onClick={() => setActiveCat('all')}>
-          🍽️ Tất cả ({MENU.length})
-        </button>
-        {CATEGORIES.map(c => (
-          <button key={c.id} className={activeCat === c.id ? 'tor-chip active' : 'tor-chip'} onClick={() => setActiveCat(c.id)}>
-            {c.emoji} {c.label}
+      {/* Thanh tìm kiếm & lọc danh mục */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', marginBottom: '1rem' }}>
+        <input
+          className="input-field"
+          style={{ flex: '1 1 240px', padding: '0.55rem 1rem', fontSize: '0.9rem' }}
+          placeholder="🔍 Tìm món ăn yêu thích (VD: gà xối mỡ, bò lúc lắc, bánh bao kẹp, mì cay...)"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+        <div className="tor-chips" role="tablist" aria-label="Danh mục món" style={{ margin: 0 }}>
+          <button className={activeCat === 'all' ? 'tor-chip active' : 'tor-chip'} onClick={() => setActiveCat('all')}>
+            🍽️ Tất cả ({MENU.length})
           </button>
-        ))}
+          {CATEGORIES.map(c => (
+            <button key={c.id} className={activeCat === c.id ? 'tor-chip active' : 'tor-chip'} onClick={() => setActiveCat(c.id)}>
+              {c.emoji} {c.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="order-layout">
         <div>
-          {visibleCats.map(c => (
-            <section key={c.id} className="glass-panel tor-section">
-              <h2 style={{ color: c.color }}>{c.emoji} {c.label}</h2>
-              <div className="menu-grid">
-                {MENU.filter(m => m.category === c.id).map(item => (
-                  <MenuItemCard key={item.id} item={item} onAdd={addItem} qtyInCart={qtyById[item.id] || 0} />
-                ))}
-              </div>
-            </section>
-          ))}
+          {visibleCats.map(c => {
+            const items = MENU.filter(m => {
+              if (m.category !== c.id) return false;
+              if (!searchQuery.trim()) return true;
+              return m.name.toLowerCase().includes(searchQuery.trim().toLowerCase());
+            });
+            if (items.length === 0) return null;
+
+            return (
+              <section key={c.id} className="glass-panel tor-section">
+                <h2 style={{ color: c.color }}>{c.emoji} {c.label}</h2>
+                <div className="menu-grid">
+                  {items.map(item => (
+                    <MenuItemCard key={item.id} item={item} onAdd={addItem} qtyInCart={qtyById[item.id] || 0} />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </div>
 
         <aside id="tor-cart" className="glass-panel order-layout__cart tor-cart">
           <h2>🛒 Đơn của bạn</h2>
 
-          <div className="tor-type">
-            <button className={orderType === 'tai-quan' ? 'tor-chip active' : 'tor-chip'} onClick={() => setOrderType('tai-quan')}>🪑 Ăn tại quán</button>
-            <button className={orderType === 'mang-ve' ? 'tor-chip active' : 'tor-chip'} onClick={() => setOrderType('mang-ve')}>🥡 Mang về</button>
+          <div className="tor-type" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+            <button className={orderType === 'tai-quan' ? 'tor-chip active' : 'tor-chip'} onClick={() => setOrderType('tai-quan')}>
+              🪑 Tại bàn
+            </button>
+            <button className={orderType === 'mang-ve' ? 'tor-chip active' : 'tor-chip'} onClick={() => setOrderType('mang-ve')}>
+              🥡 Mang về
+            </button>
+            <button className={orderType === 'giao-hang' ? 'tor-chip active' : 'tor-chip'} onClick={() => setOrderType('giao-hang')}>
+              🛵 Giao tận nơi
+            </button>
           </div>
 
           {orderType === 'tai-quan' && (
             <label className="tor-field">
-              <span>Số bàn *</span>
+              <span>Số bàn đang ngồi *</span>
               <select className="input-field" value={tableNo} onChange={e => setTableNo(e.target.value ? Number(e.target.value) : '')}>
-                <option value="">-- Chọn bàn --</option>
+                <option value="">-- Chọn số bàn --</option>
                 {Array.from({ length: TABLE_COUNT }, (_, i) => i + 1).map(n => (
                   <option key={n} value={n}>Bàn {n}</option>
                 ))}
               </select>
             </label>
+          )}
+
+          {orderType === 'giao-hang' && (
+            <div style={{ display: 'grid', gap: '8px', marginBottom: '10px', padding: '10px', background: 'rgba(56,189,248,0.08)', borderRadius: '8px', border: '1px solid rgba(56,189,248,0.3)' }}>
+              <input
+                className="input-field"
+                style={{ padding: '0.5rem 0.8rem', fontSize: '0.86rem' }}
+                placeholder="📞 Số điện thoại nhận hàng *"
+                value={customerPhone}
+                onChange={e => setCustomerPhone(e.target.value)}
+              />
+              <input
+                className="input-field"
+                style={{ padding: '0.5rem 0.8rem', fontSize: '0.86rem' }}
+                placeholder="📍 Địa chỉ giao (VD: Số nhà, Đường 7A / Tòa Vinhomes) *"
+                value={customerAddress}
+                onChange={e => setCustomerAddress(e.target.value)}
+              />
+            </div>
           )}
 
           {cart.length === 0 ? (
@@ -252,11 +353,47 @@ export default function TableOrderPage() {
               <textarea className="input-field" rows={2} placeholder="Ghi chú chung cho cả đơn..."
                 value={note} onChange={e => setNote(e.target.value)} />
 
+              {/* Chọn hình thức thanh toán dự kiến */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('tienmat')}
+                  style={{
+                    padding: '7px',
+                    borderRadius: '8px',
+                    border: paymentMethod === 'tienmat' ? '2px solid #10b981' : '1px solid #475569',
+                    background: paymentMethod === 'tienmat' ? 'rgba(16,185,129,0.2)' : 'transparent',
+                    color: '#fff',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  💵 Tiền mặt
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('chuyenkhoan')}
+                  style={{
+                    padding: '7px',
+                    borderRadius: '8px',
+                    border: paymentMethod === 'chuyenkhoan' ? '2px solid #38bdf8' : '1px solid #475569',
+                    background: paymentMethod === 'chuyenkhoan' ? 'rgba(56,189,248,0.2)' : 'transparent',
+                    color: '#fff',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  💳 Quét QR Chuyển khoản
+                </button>
+              </div>
+
               <div className="tor-total"><span>Tổng tạm tính</span><strong>{fmtVND(total)}</strong></div>
               <button className="btn-primary tor-submit" disabled={sending} onClick={submit}>
                 {sending ? 'Đang gửi...' : '🔔 Gửi đơn vào bếp'}
               </button>
-              <p className="tor-muted tor-hint">Thanh toán tiền mặt hoặc chuyển khoản QR tại quầy.</p>
+              <p className="tor-muted tor-hint">Thanh toán tiền mặt hoặc quét mã QR ngay sau khi gửi đơn.</p>
             </>
           )}
         </aside>

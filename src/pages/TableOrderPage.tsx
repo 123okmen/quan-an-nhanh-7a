@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import MenuItemCard from '../components/MenuItemCard';
 import {
-  CATEGORIES, MENU, STORE_ADDRESS, STORE_HOTLINE,
+  BRAND_NAME, CATEGORIES, MENU, STORE_ADDRESS, STORE_HOTLINE,
   getShift, newOrderId, saveOrder, syncTableOrder, fmtVND,
   getBankConfig, getVietQrUrl
 } from '../lib/store';
@@ -193,58 +193,47 @@ export default function TableOrderPage() {
 
   return (
     <div className="tor">
-      {/* Banner thông tin quán & Menu đồng giá nổi bật */}
-      <section
-        className="glass-panel"
-        style={{
-          marginBottom: '1.1rem',
-          padding: '1.1rem 1.4rem',
-          background: 'linear-gradient(135deg, rgba(227, 24, 55, 0.22) 0%, rgba(245, 158, 11, 0.16) 50%, rgba(15, 23, 42, 0.92) 100%)',
-          border: '1px solid rgba(245, 158, 11, 0.45)',
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '1rem'
-        }}
-      >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ background: '#e31837', color: '#fff', fontWeight: 900, fontSize: '0.75rem', padding: '3px 10px', borderRadius: '20px', letterSpacing: '0.5px' }}>
-              🔥 NÓNG HỔI MỖI NGÀY
-            </span>
-            <span style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.4)', fontWeight: 700, fontSize: '0.75rem', padding: '3px 10px', borderRadius: '20px' }}>
-              🥟 Bánh Bao Kẹp 18K - 26K · 🍛 Cơm Chiên Trứng 25K · 🍗 Cơm/Mì Xào 40K
-            </span>
-          </div>
-          <h1 style={{ margin: '0.5rem 0 0.25rem 0', fontSize: '1.5rem', color: '#fbbf24', letterSpacing: '0.5px' }}>
-            🍔 QUÁN ĂN NHANH 7A PHƯỚC THIỆN — CƠM CHIÊN · MÌ XÀO · BÁNH BAO KẸP
-          </h1>
-          <div style={{ fontSize: '0.85rem', color: '#cbd5e1', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-            <span>📍 <strong>Địa chỉ:</strong> {STORE_ADDRESS}</span>
-            <span>📞 <strong>Giao hàng tận nơi:</strong> {STORE_HOTLINE}</span>
-          </div>
+      {/* Banner thông tin quán & Menu nổi bật phong cách nhà hàng */}
+      <section className="tor-hero">
+        <div className="tor-hero__badge-row">
+          <span className="tor-hero__badge">
+            ★ THƯƠNG HIỆU ẨM THỰC CHỌN LỌC
+          </span>
+          <span className="tor-hero__pill">
+            🟢 Đang mở cửa (06h00 – 22h30)
+          </span>
+          <span className="tor-hero__pill" style={{ color: '#fbbf24', borderColor: 'rgba(245, 158, 11, 0.4)', background: 'rgba(245, 158, 11, 0.15)' }}>
+            🥟 Bánh Bao Kẹp 18K - 26K · 🍛 Cơm Chiên 25K - 40K · 🍜 Mì Xào 40K
+          </span>
+        </div>
+        <h1>🍔 {BRAND_NAME} — PHƯỚC THIỆN</h1>
+        <div className="tor-hero__info-row">
+          <span>📍 <strong>Địa chỉ:</strong> {STORE_ADDRESS}</span>
+          <span>📞 <strong>Hotline đặt món:</strong> <a href={`tel:${STORE_HOTLINE.replace(/\./g, '')}`} style={{ color: '#fbbf24', textDecoration: 'none' }}>{STORE_HOTLINE}</a></span>
+          <span>🛵 <strong>Giao hàng:</strong> Tận nơi quanh khu vực</span>
         </div>
       </section>
 
-      {/* Thanh tìm kiếm & lọc danh mục */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', marginBottom: '1rem' }}>
-        <input
-          className="input-field"
-          style={{ flex: '1 1 240px', padding: '0.55rem 1rem', fontSize: '0.9rem' }}
-          placeholder="🔍 Tìm món ăn yêu thích (VD: gà xối mỡ, bò lúc lắc, bánh bao kẹp, mì cay...)"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-        />
-        <div className="tor-chips" role="tablist" aria-label="Danh mục món" style={{ margin: 0 }}>
-          <button className={activeCat === 'all' ? 'tor-chip active' : 'tor-chip'} onClick={() => setActiveCat('all')}>
-            🍽️ Tất cả ({MENU.length})
-          </button>
-          {CATEGORIES.map(c => (
-            <button key={c.id} className={activeCat === c.id ? 'tor-chip active' : 'tor-chip'} onClick={() => setActiveCat(c.id)}>
-              {c.emoji} {c.label}
+      {/* Thanh tìm kiếm & lọc danh mục sticky */}
+      <div className="tor-filter-bar">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+          <input
+            className="input-field"
+            style={{ flex: '1 1 240px', padding: '0.6rem 1rem', fontSize: '0.9rem' }}
+            placeholder="🔍 Tìm món ăn yêu thích (gà xối mỡ, bò lúc lắc, bánh bao kẹp, mì cay...)"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          <div className="tor-chips" role="tablist" aria-label="Danh mục món">
+            <button className={activeCat === 'all' ? 'tor-chip active' : 'tor-chip'} onClick={() => setActiveCat('all')}>
+              🍽️ Tất cả ({MENU.length})
             </button>
-          ))}
+            {CATEGORIES.map(c => (
+              <button key={c.id} className={activeCat === c.id ? 'tor-chip active' : 'tor-chip'} onClick={() => setActiveCat(c.id)}>
+                {c.emoji} {c.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -272,9 +261,12 @@ export default function TableOrderPage() {
         </div>
 
         <aside id="tor-cart" className="glass-panel order-layout__cart tor-cart">
-          <h2>🛒 Đơn của bạn</h2>
+          <h2>
+            <span>🛒 Đơn gọi món</span>
+            {itemCount > 0 && <span style={{ fontSize: '0.85rem', color: '#10b981' }}>{itemCount} món</span>}
+          </h2>
 
-          <div className="tor-type" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+          <div className="tor-type">
             <button className={orderType === 'tai-quan' ? 'tor-chip active' : 'tor-chip'} onClick={() => setOrderType('tai-quan')}>
               🪑 Tại bàn
             </button>
@@ -310,7 +302,7 @@ export default function TableOrderPage() {
               <input
                 className="input-field"
                 style={{ padding: '0.5rem 0.8rem', fontSize: '0.86rem' }}
-                placeholder="📍 Địa chỉ giao (VD: Số nhà, Đường 7A / Tòa Vinhomes) *"
+                placeholder="📍 Địa chỉ giao (Số nhà, Đường 7A / Tòa Vinhomes) *"
                 value={customerAddress}
                 onChange={e => setCustomerAddress(e.target.value)}
               />
@@ -318,7 +310,9 @@ export default function TableOrderPage() {
           )}
 
           {cart.length === 0 ? (
-            <p className="tor-muted tor-empty">Bấm vào món để thêm vào đơn</p>
+            <p className="tor-muted tor-empty" style={{ padding: '2rem 0', textAlign: 'center' }}>
+              Chưa có món nào. Bấm vào món ăn để thêm vào đơn nhé!
+            </p>
           ) : (
             <>
               {cart.map(l => (
@@ -328,13 +322,15 @@ export default function TableOrderPage() {
                       <div>{l.name}</div>
                       <small>{fmtVND(l.price)}</small>
                     </div>
-                    <button className="qty-btn" aria-label="Bớt" onClick={() => changeQty(l.id, -1)}>−</button>
-                    <span className="tor-line__qty">{l.qty}</span>
-                    <button className="qty-btn" aria-label="Thêm" onClick={() => changeQty(l.id, 1)}>+</button>
+                    <div className="qty-stepper">
+                      <button type="button" aria-label="Bớt" onClick={() => changeQty(l.id, -1)}>−</button>
+                      <span>{l.qty}</span>
+                      <button type="button" aria-label="Thêm" onClick={() => changeQty(l.id, 1)}>+</button>
+                    </div>
                   </div>
                   <input
                     className="input-field tor-line__note"
-                    placeholder="Ghi chú món (vd: cấp độ cay, không hành...)"
+                    placeholder="Ghi chú món (vd: không hành, cay nhẹ...)"
                     value={l.note || ''}
                     onChange={e => setLineNote(l.id, e.target.value)}
                   />
@@ -344,7 +340,7 @@ export default function TableOrderPage() {
               <div className="tor-quick">
                 {QUICK_NOTES.map(q => (
                   <button key={q} type="button"
-                    className={note.split(',').map(s => s.trim()).includes(q) ? 'tor-chip small active' : 'tor-chip small'}
+                    className={note.split(',').map(s => s.trim()).includes(q) ? 'tor-quick__chip active' : 'tor-quick__chip'}
                     onClick={() => toggleQuickNote(q)}>
                     {q}
                   </button>
@@ -359,10 +355,10 @@ export default function TableOrderPage() {
                   type="button"
                   onClick={() => setPaymentMethod('tienmat')}
                   style={{
-                    padding: '7px',
+                    padding: '8px',
                     borderRadius: '8px',
-                    border: paymentMethod === 'tienmat' ? '2px solid #10b981' : '1px solid #475569',
-                    background: paymentMethod === 'tienmat' ? 'rgba(16,185,129,0.2)' : 'transparent',
+                    border: paymentMethod === 'tienmat' ? '2px solid #10b981' : '1px solid rgba(255,255,255,0.1)',
+                    background: paymentMethod === 'tienmat' ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.03)',
                     color: '#fff',
                     fontWeight: 700,
                     fontSize: '0.82rem',
@@ -375,25 +371,30 @@ export default function TableOrderPage() {
                   type="button"
                   onClick={() => setPaymentMethod('chuyenkhoan')}
                   style={{
-                    padding: '7px',
+                    padding: '8px',
                     borderRadius: '8px',
-                    border: paymentMethod === 'chuyenkhoan' ? '2px solid #38bdf8' : '1px solid #475569',
-                    background: paymentMethod === 'chuyenkhoan' ? 'rgba(56,189,248,0.2)' : 'transparent',
+                    border: paymentMethod === 'chuyenkhoan' ? '2px solid #fbbf24' : '1px solid rgba(255,255,255,0.1)',
+                    background: paymentMethod === 'chuyenkhoan' ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.03)',
                     color: '#fff',
                     fontWeight: 700,
                     fontSize: '0.82rem',
                     cursor: 'pointer'
                   }}
                 >
-                  💳 Quét QR Chuyển khoản
+                  💳 Quét VietQR
                 </button>
               </div>
 
-              <div className="tor-total"><span>Tổng tạm tính</span><strong>{fmtVND(total)}</strong></div>
-              <button className="btn-primary tor-submit" disabled={sending} onClick={submit}>
-                {sending ? 'Đang gửi...' : '🔔 Gửi đơn vào bếp'}
+              <div className="tor-total-row">
+                <span className="tor-total-label">Tổng cộng:</span>
+                <span className="tor-total-amount">{fmtVND(total)}</span>
+              </div>
+              <button className="tor-submit-btn" disabled={sending} onClick={submit}>
+                {sending ? 'Đang gửi...' : '🔔 GỬI ĐƠN VÀO BẾP NGAY'}
               </button>
-              <p className="tor-muted tor-hint">Thanh toán tiền mặt hoặc quét mã QR ngay sau khi gửi đơn.</p>
+              <p className="tor-muted" style={{ textAlign: 'center', fontSize: '0.75rem', marginTop: '8px' }}>
+                Thanh toán tiền mặt hoặc quét mã QR VietQR khi nhận món.
+              </p>
             </>
           )}
         </aside>
@@ -402,7 +403,7 @@ export default function TableOrderPage() {
       {itemCount > 0 && (
         <a href="#tor-cart" className="tor-floatbar" onClick={e => { e.preventDefault(); document.getElementById('tor-cart')?.scrollIntoView({ behavior: 'smooth' }); }}>
           <span>🛒 {itemCount} món</span>
-          <strong>{fmtVND(total)} · Xem đơn ›</strong>
+          <span>{fmtVND(total)} · Xem đơn ›</span>
         </a>
       )}
     </div>

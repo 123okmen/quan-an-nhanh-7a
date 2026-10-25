@@ -56,16 +56,16 @@ export default function App() {
   return (
     <div className="app-container">
       {!isKioskMode && (
-        <header className="app-header" style={{ background: '#0a0a0a', borderBottom: '3px solid #e31837', position: 'sticky', top: 0, zIndex: 100 }}>
-          <div className="header-content" style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', gap: '0.75rem' }}>
-            <div className="brand" onClick={() => changeTab('order')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <span className="brand-icon" style={{ fontSize: '1.75rem' }}>🍔</span>
+        <header className="app-header">
+          <div className="header-content">
+            <div className="brand" onClick={() => changeTab('order')}>
+              <span className="brand-icon">🍔</span>
               <div>
-                <div className="brand-title" style={{ color: '#f59e0b', fontWeight: '900', fontSize: '1.22rem', letterSpacing: '0.5px', lineHeight: '1.1' }}>
-                  {BRAND_NAME} — PHƯỚC THIỆN
+                <div className="brand-title">
+                  {BRAND_NAME}
                 </div>
-                <div style={{ color: '#94a3b8', fontSize: '0.74rem', fontWeight: 600 }}>
-                  {isShareholder ? '📊 Báo Cáo Doanh Thu Dành Cho Cổ Đông' : `${BRAND_SUBTITLE} • ${STORE_ADDRESS}`}
+                <div className="brand-subtitle">
+                  {isShareholder ? '📊 Cổng Thông Tin Báo Cáo Doanh Thu Cổ Đông' : `${BRAND_SUBTITLE} • ${STORE_ADDRESS}`}
                 </div>
               </div>
             </div>
@@ -74,85 +74,45 @@ export default function App() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{
                   background: 'rgba(16, 185, 129, 0.15)',
-                  color: '#10b981',
+                  color: '#34d399',
                   border: '1px solid rgba(16, 185, 129, 0.4)',
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '20px',
-                  fontSize: '0.8rem',
+                  padding: '0.45rem 1rem',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: '0.82rem',
                   fontWeight: '700',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.4rem'
+                  gap: '0.45rem'
                 }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-                  Cổng Thông Tin Cổ Đông (Trực Tuyến)
+                  Cổng Cổ Đông Trực Tuyến
                 </span>
               </div>
             ) : (
-              <nav className="nav-tabs" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+              <nav className="nav-tabs">
                 <button
                   className={activeTab === 'order' ? 'nav-tab active' : 'nav-tab'}
                   onClick={() => changeTab('order')}
-                  style={{
-                    padding: '0.5rem 0.85rem',
-                    borderRadius: '8px',
-                    border: activeTab === 'order' ? '2px solid #f59e0b' : '1px solid #334155',
-                    background: activeTab === 'order' ? '#f59e0b' : 'rgba(30, 41, 59, 0.8)',
-                    color: activeTab === 'order' ? '#0f172a' : '#cbd5e1',
-                    fontWeight: '800',
-                    cursor: 'pointer',
-                    fontSize: '0.84rem'
-                  }}
                 >
                   🍽️ Gọi Món Tại Bàn
                 </button>
                 <button
                   className={activeTab === 'staff' ? 'nav-tab active' : 'nav-tab'}
                   onClick={() => changeTab('staff')}
-                  style={{
-                    padding: '0.5rem 0.85rem',
-                    borderRadius: '8px',
-                    border: activeTab === 'staff' ? '2px solid #f59e0b' : '1px solid #334155',
-                    background: activeTab === 'staff' ? '#f59e0b' : 'rgba(30, 41, 59, 0.8)',
-                    color: activeTab === 'staff' ? '#0f172a' : '#cbd5e1',
-                    fontWeight: '800',
-                    cursor: 'pointer',
-                    fontSize: '0.84rem'
-                  }}
                 >
-                  👥 Ca Làm / Bếp
+                  👥 Ca Làm / Bếp POS
                 </button>
                 <button
                   className={activeTab === 'planner' ? 'nav-tab active' : 'nav-tab'}
                   onClick={() => changeTab('planner')}
-                  style={{
-                    padding: '0.5rem 0.85rem',
-                    borderRadius: '8px',
-                    border: activeTab === 'planner' ? '2px solid #f59e0b' : '1px solid #334155',
-                    background: activeTab === 'planner' ? '#f59e0b' : 'rgba(30, 41, 59, 0.8)',
-                    color: activeTab === 'planner' ? '#0f172a' : '#cbd5e1',
-                    fontWeight: '800',
-                    cursor: 'pointer',
-                    fontSize: '0.84rem'
-                  }}
                 >
-                  📊 Báo Cáo
+                  📊 Báo Cáo Doanh Thu
                 </button>
                 <button
                   className={activeTab === 'plan' ? 'nav-tab active' : 'nav-tab'}
                   onClick={() => changeTab('plan')}
-                  style={{
-                    padding: '0.5rem 0.85rem',
-                    borderRadius: '8px',
-                    border: activeTab === 'plan' ? '2px solid #10b981' : '1px solid #334155',
-                    background: activeTab === 'plan' ? '#10b981' : 'rgba(30, 41, 59, 0.8)',
-                    color: activeTab === 'plan' ? '#0f172a' : '#cbd5e1',
-                    fontWeight: '800',
-                    cursor: 'pointer',
-                    fontSize: '0.84rem'
-                  }}
                 >
-                  📋 Kế Hoạch Setup & Vận Hành
+                  📋 Setup & Vận Hành
                 </button>
               </nav>
             )}

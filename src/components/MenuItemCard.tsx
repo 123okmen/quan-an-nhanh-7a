@@ -45,38 +45,58 @@ export default function MenuItemCard({ item, onAdd, overridePrice, qtyInCart = 0
     : '';
 
   return (
-    <button type="button" className="menu-card" onClick={() => onAdd(item)}>
-      {qtyInCart > 0 && <span className="menu-card__badge">{qtyInCart}</span>}
-      {item.badge && <span className="menu-card__tag">{item.badge}</span>}
-      {showImg ? (
-        <img
-          className="menu-card__img"
-          src={imgSrc}
-          alt={item.name}
-          loading="lazy"
-          width={160}
-          height={95}
-          onError={() => setImgFailed(true)}
-        />
-      ) : (
-        <div
-          className="menu-card__img menu-card__img--emoji"
-          style={{
-            background: `linear-gradient(135deg, ${(cat?.color || '#334155')}33 0%, rgba(15, 23, 42, 0.7) 100%)`,
-            borderBottom: `2px solid ${(cat?.color || '#334155')}66`
-          }}
-        >
-          {emoji}
-        </div>
-      )}
-      <div className="menu-card__name">{item.name}</div>
-      {item.description && <div className="menu-card__desc">{item.description}</div>}
-      <div className="menu-card__price">
-        {overridePrice !== undefined && overridePrice !== item.price && (
-          <s className="menu-card__old">{fmtVND(item.price)}</s>
+    <div className={`menu-card ${qtyInCart > 0 ? 'in-cart' : ''}`}>
+      <div className="menu-card__media" onClick={() => onAdd(item)} role="button" tabIndex={0}>
+        {showImg ? (
+          <img
+            className="menu-card__img"
+            src={imgSrc}
+            alt={item.name}
+            loading="lazy"
+            onError={() => setImgFailed(true)}
+          />
+        ) : (
+          <div
+            className="menu-card__img menu-card__img--emoji"
+            style={{
+              background: `linear-gradient(135deg, ${(cat?.color || '#f59e0b')}33 0%, rgba(15, 23, 42, 0.85) 100%)`,
+              borderBottom: `2px solid ${(cat?.color || '#f59e0b')}66`
+            }}
+          >
+            {emoji}
+          </div>
         )}
-        {fmtVND(price)}
+        <div className="menu-card__overlay" />
+        {item.badge && <span className="menu-card__tag">{item.badge}</span>}
+        {qtyInCart > 0 && <span className="menu-card__badge">{qtyInCart}</span>}
       </div>
-    </button>
+
+      <div className="menu-card__body">
+        <h3 className="menu-card__name" title={item.name} onClick={() => onAdd(item)}>
+          {item.name}
+        </h3>
+        {item.description && (
+          <p className="menu-card__desc" title={item.description}>
+            {item.description}
+          </p>
+        )}
+        <div className="menu-card__footer">
+          <div className="menu-card__pricing">
+            {overridePrice !== undefined && overridePrice !== item.price && (
+              <s className="menu-card__old">{fmtVND(item.price)}</s>
+            )}
+            <span className="menu-card__price">{fmtVND(price)}</span>
+          </div>
+          <button
+            type="button"
+            className="menu-card__add-btn"
+            onClick={(e) => { e.stopPropagation(); onAdd(item); }}
+            aria-label={`Thêm ${item.name}`}
+          >
+            {qtyInCart > 0 ? `+ Thêm (${qtyInCart})` : '+ Chọn'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

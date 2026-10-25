@@ -45,6 +45,7 @@ export const MENU: MenuItem[] = [
     cost: 13000,
     category: 'com-nong',
     badge: 'Giá Sinh Viên',
+    img: 'menu/com-1.jpg',
     description: 'Cơm chiên tỏi hạt vàng tơi phủ lớp trứng chiên mềm béo'
   },
   {
@@ -54,6 +55,7 @@ export const MENU: MenuItem[] = [
     cost: 22000,
     category: 'com-nong',
     badge: 'Best Seller',
+    img: 'menu/com-2.jpg',
     description: 'Đùi/góc tư gà chiên xối mỡ da giòn rụm + Cơm chiên đỏ + Đồ chua'
   },
   {
@@ -63,6 +65,7 @@ export const MENU: MenuItem[] = [
     cost: 22000,
     category: 'com-nong',
     badge: 'Đậm Vị',
+    img: 'menu/com-3.jpg',
     description: 'Gà chiên giòn áo sốt mắm tỏi ớt kẹo thơm lừng'
   },
   {
@@ -71,6 +74,7 @@ export const MENU: MenuItem[] = [
     price: 40000,
     cost: 22500,
     category: 'com-nong',
+    img: 'menu/com-4.jpg',
     description: 'Tôm, mực tươi, rau củ hạt lựu chiên lửa lớn chuẩn vị'
   },
   {
@@ -79,6 +83,7 @@ export const MENU: MenuItem[] = [
     price: 40000,
     cost: 22500,
     category: 'com-nong',
+    img: 'menu/com-5.jpg',
     description: 'Cơm trắng dùng kèm tôm mực xào rau củ sốt dầu hào đậm đà'
   },
   {
@@ -88,6 +93,7 @@ export const MENU: MenuItem[] = [
     cost: 23000,
     category: 'com-nong',
     badge: 'Hot',
+    img: 'menu/com-6.jpg',
     description: 'Thịt bò thái vuông áp chảo lửa lớn cùng ớt chuông, hành tây'
   },
   {
@@ -96,6 +102,7 @@ export const MENU: MenuItem[] = [
     price: 40000,
     cost: 22500,
     category: 'com-nong',
+    img: 'menu/com-7.jpg',
     description: 'Thịt bò mềm xào cải ngọt, cà rốt, bông cải tươi giòn'
   },
   {
@@ -104,6 +111,7 @@ export const MENU: MenuItem[] = [
     price: 40000,
     cost: 22000,
     category: 'com-nong',
+    img: 'menu/com-8.jpg',
     description: 'Sườn non chiên áo sốt chua ngọt đậm đà, đưa cơm'
   },
 
@@ -115,6 +123,7 @@ export const MENU: MenuItem[] = [
     cost: 22000,
     category: 'mi-hu-tieu',
     badge: 'Bán Chạy',
+    img: 'menu/mi-1.jpg',
     description: 'Mì dai xào tôm, mực tươi, cải ngọt, cà rốt áp chảo thơm lửa'
   },
   {
@@ -123,6 +132,7 @@ export const MENU: MenuItem[] = [
     price: 40000,
     cost: 22500,
     category: 'mi-hu-tieu',
+    img: 'menu/mi-2.jpg',
     description: 'Mì xào thịt bò mềm ngọt cùng cải thìa, hành tỏi phi'
   },
   {
@@ -132,6 +142,7 @@ export const MENU: MenuItem[] = [
     cost: 22000,
     category: 'mi-hu-tieu',
     badge: 'Đặc Biệt',
+    img: 'menu/mi-3.jpg',
     description: 'Vắt mì chiên giòn rụm rưới sốt hải sản / bò rau củ sánh quyện'
   },
   {
@@ -140,6 +151,7 @@ export const MENU: MenuItem[] = [
     price: 40000,
     cost: 22000,
     category: 'mi-hu-tieu',
+    img: 'menu/mi-4.jpg',
     description: 'Sợi hủ tiếu dai xào khô lửa lớn với giá hẹ, bò hoặc hải sản'
   },
   {
@@ -148,6 +160,7 @@ export const MENU: MenuItem[] = [
     price: 40000,
     cost: 22000,
     category: 'mi-hu-tieu',
+    img: 'menu/mi-5.jpg',
     description: 'Hủ tiếu áp chảo thơm khói chan sốt nước sệt đậm vị kiểu Hoa'
   },
 
@@ -158,6 +171,7 @@ export const MENU: MenuItem[] = [
     price: 18000,
     cost: 9500,
     category: 'banh-bao-kep',
+    img: 'menu/bbk-1.jpg',
     description: 'Vỏ bánh bao hấp mềm xốp kẹp xúc xích chiên, rau xà lách & sốt'
   },
   {
@@ -167,6 +181,7 @@ export const MENU: MenuItem[] = [
     cost: 10800,
     category: 'banh-bao-kep',
     badge: 'Best Seller',
+    img: 'menu/bbk-2.jpg',
     description: 'Bánh bao kẹp ức/phi lê gà rán giòn rụm, dưa leo, sốt tương ớt mayo'
   },
   {
@@ -175,6 +190,7 @@ export const MENU: MenuItem[] = [
     price: 24000,
     cost: 13000,
     category: 'banh-bao-kep',
+    img: 'menu/bbk-3.jpg',
     description: 'Bánh bao kẹp chả tôm tẩm bột chiên giòn nóng hổi'
   },
   {
@@ -184,6 +200,7 @@ export const MENU: MenuItem[] = [
     cost: 14500,
     category: 'banh-bao-kep',
     badge: 'Yêu Thích',
+    img: 'menu/bbk-4.jpg',
     description: 'Bánh bao kẹp tôm rán giòn thêm phô mai béo ngậy tan chảy'
   },
   {
@@ -192,6 +209,7 @@ export const MENU: MenuItem[] = [
     price: 25000,
     cost: 13500,
     category: 'banh-bao-kep',
+    img: 'menu/bbk-5.jpg',
     description: 'Bánh bao kẹp thịt nướng sốt BBQ khói thơm lừng'
   },
 
@@ -203,6 +221,7 @@ export const MENU: MenuItem[] = [
     cost: 15000,
     category: 'fastfood-an-vat',
     badge: 'FastFood',
+    img: 'menu/ff-1.jpg',
     description: 'Vỏ bánh Burger mè kẹp nhân bò/gà rán, xà lách, cà chua, phô mai'
   },
   {
@@ -211,6 +230,7 @@ export const MENU: MenuItem[] = [
     price: 22000,
     cost: 11500,
     category: 'fastfood-an-vat',
+    img: 'menu/ff-2.jpg',
     description: 'Bánh mì Sandwich áp chảo kẹp trứng, xúc xích, rau sốt béo'
   },
   {
@@ -220,6 +240,7 @@ export const MENU: MenuItem[] = [
     cost: 16000,
     category: 'fastfood-an-vat',
     badge: 'Hot Trend',
+    img: 'menu/ff-3.jpg',
     description: 'Mì trộn sốt đậm đà kèm xúc xích khía, gà rán, trứng ốp la'
   },
   {
@@ -229,6 +250,7 @@ export const MENU: MenuItem[] = [
     cost: 22000,
     category: 'fastfood-an-vat',
     badge: 'Món Tối',
+    img: 'menu/ff-4.jpg',
     description: 'Mì Koreno nấu kim chi chua cay cùng bò, tôm, mực, cá viên, bông cải'
   },
   {
@@ -237,6 +259,7 @@ export const MENU: MenuItem[] = [
     price: 20000,
     cost: 10000,
     category: 'fastfood-an-vat',
+    img: 'menu/ff-5.jpg',
     description: 'Bánh tráng dẻo trộn khô bò, trứng cút, xoài xanh, rau răm, sốt tắc'
   },
 
@@ -246,35 +269,40 @@ export const MENU: MenuItem[] = [
     name: 'Trứng Ốp La / Trứng Phủ Thêm',
     price: 5000,
     cost: 3200,
-    category: 'topping'
+    category: 'topping',
+    img: 'menu/tp-1.jpg'
   },
   {
     id: 'tp-2',
     name: 'Phô Mai Lát Thêm',
     price: 5000,
     cost: 3000,
-    category: 'topping'
+    category: 'topping',
+    img: 'menu/tp-2.jpg'
   },
   {
     id: 'tp-3',
     name: 'Xúc Xích Chiên Thêm',
     price: 8000,
     cost: 4500,
-    category: 'topping'
+    category: 'topping',
+    img: 'menu/tp-3.jpg'
   },
   {
     id: 'tp-4',
     name: 'Cơm Thêm / Vắt Mì Thêm',
     price: 5000,
     cost: 2800,
-    category: 'topping'
+    category: 'topping',
+    img: 'menu/tp-4.jpg'
   },
   {
     id: 'tp-5',
     name: 'Pepsi / Coca / 7Up / Trà Đá',
     price: 10000,
     cost: 6500,
-    category: 'topping'
+    category: 'topping',
+    img: 'menu/tp-5.jpg'
   }
 ];
 

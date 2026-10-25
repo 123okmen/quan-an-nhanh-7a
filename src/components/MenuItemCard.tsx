@@ -38,6 +38,12 @@ export default function MenuItemCard({ item, onAdd, overridePrice, qtyInCart = 0
   const price = overridePrice ?? item.price;
   const emoji = getItemEmoji(item, cat?.emoji || '🍽️');
 
+  const imgSrc = item.img
+    ? (item.img.startsWith('http')
+        ? item.img
+        : (import.meta.env.BASE_URL + item.img).replace(/\/+/g, '/').replace(/^\//, (import.meta.env.BASE_URL.startsWith('/') ? '/' : './')))
+    : '';
+
   return (
     <button type="button" className="menu-card" onClick={() => onAdd(item)}>
       {qtyInCart > 0 && <span className="menu-card__badge">{qtyInCart}</span>}
@@ -45,11 +51,11 @@ export default function MenuItemCard({ item, onAdd, overridePrice, qtyInCart = 0
       {showImg ? (
         <img
           className="menu-card__img"
-          src={import.meta.env.BASE_URL + item.img}
+          src={imgSrc}
           alt={item.name}
           loading="lazy"
           width={160}
-          height={80}
+          height={95}
           onError={() => setImgFailed(true)}
         />
       ) : (

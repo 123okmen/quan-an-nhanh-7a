@@ -390,7 +390,7 @@ export interface Order {
   source?: string;
 }
 
-export const APP_SCRIPT_URL = "";
+export const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCtOrTDhFcBA7rMl-VsHttNOVCJWQv5V9yzZ2N9CGLTfr2Y99zW6ayU0exKvX4syM9/exec";
 export const CUSTOM_SCRIPT_URL_KEY = "fastfood_7a_custom_script_url_v1";
 export const CUSTOM_SHEET_VIEW_URL_KEY = "fastfood_7a_sheet_view_url_v1";
 export const CONFIG_CHANGED_EVENT = "fastfood_7a_config_changed";

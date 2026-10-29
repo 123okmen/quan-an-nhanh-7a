@@ -79,13 +79,12 @@ export const MENU: MenuItem[] = [
   },
   {
     id: 'com-5',
-    name: 'Cơm Xào Mực Thập Cẩm',
-    price: 50000,
-    cost: 26000,
+    name: 'Cơm Xào Hải Sản',
+    price: 40000,
+    cost: 22500,
     category: 'com-nong',
-    badge: 'Hải Sản Tươi',
     img: 'menu/com-5.jpg',
-    description: 'Mực tươi giòn xào ớt chuông, cần tây, củ hành sốt đậm vị ăn kèm cơm nóng'
+    description: 'Cơm trắng dùng kèm tôm mực xào rau củ sốt dầu hào đậm đà'
   },
   {
     id: 'com-6',
@@ -99,22 +98,21 @@ export const MENU: MenuItem[] = [
   },
   {
     id: 'com-7',
-    name: 'Cơm Chiên Trứng + Bò Xào Củ Hành',
+    name: 'Cơm Bò Xào Rau Củ',
     price: 40000,
     cost: 22500,
     category: 'com-nong',
-    badge: 'Đậm Vị',
     img: 'menu/com-7.jpg',
-    description: 'Cơm chiên hạt tơi phủ trứng dùng kèm thịt bò xào củ hành thơm lừng'
+    description: 'Thịt bò mềm xào cải ngọt, cà rốt, bông cải tươi giòn'
   },
   {
     id: 'com-8',
-    name: 'Bò Xào Củ Hành Lót Xà Lách Dầu Giấm',
-    price: 50000,
-    cost: 27000,
+    name: 'Cơm Sườn Chua Ngọt',
+    price: 40000,
+    cost: 22000,
     category: 'com-nong',
     img: 'menu/com-8.jpg',
-    description: 'Thịt bò xào củ hành tiêu đen đậm đà lót xà lách, cà chua trộn dầu giấm chua ngọt'
+    description: 'Sườn non chiên áo sốt chua ngọt đậm đà, đưa cơm'
   },
 
   // --- 2. MÌ XÀO & HỦ TIẾU ---
@@ -130,13 +128,12 @@ export const MENU: MenuItem[] = [
   },
   {
     id: 'mi-2',
-    name: 'Mì Xào Bò (Có Trứng)',
+    name: 'Mì Xào Bò',
     price: 40000,
     cost: 22500,
     category: 'mi-hu-tieu',
-    badge: 'Best Seller',
     img: 'menu/mi-2.jpg',
-    description: 'Mì xào thịt bò mềm ngọt, cải ngọt, cà rốt kèm trứng ốp la lòng đào'
+    description: 'Mì xào thịt bò mềm ngọt cùng cải thìa, hành tỏi phi'
   },
   {
     id: 'mi-3',
@@ -150,22 +147,21 @@ export const MENU: MenuItem[] = [
   },
   {
     id: 'mi-4',
-    name: 'Nui Xào Bò (Có Trứng)',
+    name: 'Hủ Tiếu Xào Khô (Bò/Hải Sản)',
     price: 40000,
     cost: 22000,
     category: 'mi-hu-tieu',
-    badge: 'Mới',
     img: 'menu/mi-4.jpg',
-    description: 'Sợi nui vàng óng dai mềm xào thịt bò ướp đậm đà, trứng ốp la rắc tiêu ngò'
+    description: 'Sợi hủ tiếu dai xào khô lửa lớn với giá hẹ, bò hoặc hải sản'
   },
   {
     id: 'mi-5',
-    name: 'Mì Ý Sốt Bò Bằm (Spaghetti)',
+    name: 'Hủ Tiếu Xào Nước (Bò/Hải Sản)',
     price: 40000,
     cost: 22000,
     category: 'mi-hu-tieu',
     img: 'menu/mi-5.jpg',
-    description: 'Sợi mì Ý dai ngon sốt cà chua thịt bò bằm đậm đà chuẩn vị Âu'
+    description: 'Hủ tiếu áp chảo thơm khói chan sốt nước sệt đậm vị kiểu Hoa'
   },
 
   // --- 3. BÁNH BAO KẸP (BBK) ---
@@ -217,56 +213,54 @@ export const MENU: MenuItem[] = [
     description: 'Bánh bao kẹp thịt nướng sốt BBQ khói thơm lừng'
   },
 
-  // --- 4. BÒ NÉ, BÁNH MÌ, MÌ CAY, ĂN VẶT ---
+  // --- 4. HAMBURGER, SANDWICH, MÌ TRỘN, MÌ CAY, BÁNH TRÁNG TRỘN ---
   {
     id: 'ff-1',
-    name: 'Bánh Mì Bò Né Thập Cẩm (Chảo Gang)',
-    price: 50000,
-    cost: 28000,
+    name: 'Hamburger Bò / Gà Giòn Phô Mai',
+    price: 28000,
+    cost: 15000,
     category: 'fastfood-an-vat',
-    badge: 'Đặc Biệt',
+    badge: 'FastFood',
     img: 'menu/ff-1.jpg',
-    description: 'Chảo gang xèo xèo: Thịt bò mềm ướp tiêu, 2 trứng ốp la, xúc xích, pate béo ngậy kèm bánh mì nóng giòn'
+    description: 'Vỏ bánh Burger mè kẹp nhân bò/gà rán, xà lách, cà chua, phô mai'
   },
   {
     id: 'ff-2',
-    name: 'Bánh Mì Nướng Bơ Tỏi Phô Mai',
-    price: 25000,
-    cost: 12000,
+    name: 'Sandwich Kẹp Trứng Xúc Xích / Gà',
+    price: 22000,
+    cost: 11500,
     category: 'fastfood-an-vat',
-    badge: 'Mới',
     img: 'menu/ff-2.jpg',
-    description: 'Bánh mì nướng giòn rụm phết sốt bơ tỏi thơm lừng, nhân hải sản tôm cua phủ phô mai tan chảy'
+    description: 'Bánh mì Sandwich áp chảo kẹp trứng, xúc xích, rau sốt béo'
   },
   {
     id: 'ff-3',
-    name: 'Bò Bít Tết Khoai Tây Chiên',
-    price: 50000,
-    cost: 28000,
+    name: 'Mì Trộn Thập Cẩm (Xúc Xích + Gà + Trứng)',
+    price: 30000,
+    cost: 16000,
     category: 'fastfood-an-vat',
-    badge: 'Món Tây',
+    badge: 'Hot Trend',
     img: 'menu/ff-3.jpg',
-    description: 'Thịt bò bít tết áp chảo mọng nước dùng kèm khoai tây chiên vàng và sốt tiêu đen'
+    description: 'Mì trộn sốt đậm đà kèm xúc xích khía, gà rán, trứng ốp la'
   },
   {
     id: 'ff-4',
-    name: 'Mì Cay Hàn Quốc Thập Cẩm',
+    name: 'Mì Cay 7 Cấp Độ (Bò / Hải Sản)',
     price: 40000,
     cost: 22000,
     category: 'fastfood-an-vat',
-    badge: 'Cay Nồng',
+    badge: 'Món Tối',
     img: 'menu/ff-4.jpg',
-    description: 'Mì cay Hàn Quốc sợi to dai kèm thịt bò, xúc xích, trứng ốp la, cải thìa sốt ớt đỏ xuýt xoa'
+    description: 'Mì Koreno nấu kim chi chua cay cùng bò, tôm, mực, cá viên, bông cải'
   },
   {
     id: 'ff-5',
-    name: 'Khoai Tây Chiên Lắc Phô Mai',
-    price: 25000,
+    name: 'Bánh Tráng Trộn Đặc Biệt',
+    price: 20000,
     cost: 10000,
     category: 'fastfood-an-vat',
-    badge: 'Ăn Vặt',
     img: 'menu/ff-5.jpg',
-    description: 'Khoai tây cọng giòn tan lắc đều bột phô mai cam béo mặn cuốn hút'
+    description: 'Bánh tráng dẻo trộn khô bò, trứng cút, xoài xanh, rau răm, sốt tắc'
   },
 
   // --- 5. TOPPING & NƯỚC UỐNG ---
@@ -288,9 +282,9 @@ export const MENU: MenuItem[] = [
   },
   {
     id: 'tp-3',
-    name: 'Bánh Mì Nóng Giòn Thêm',
-    price: 3000,
-    cost: 1500,
+    name: 'Xúc Xích Chiên Thêm',
+    price: 8000,
+    cost: 4500,
     category: 'topping',
     img: 'menu/tp-3.jpg'
   },

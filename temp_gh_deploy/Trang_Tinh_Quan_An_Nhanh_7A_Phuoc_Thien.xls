@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" ss:Size="11"/>
+  </Style>
+  <Style ss:ID="Title">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" ss:Size="14" ss:Bold="1" ss:Color="#F59E0B"/>
+   <Interior ss:Color="#0F172A" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="HeaderGreen">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#1E7145" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="HeaderRed">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#C0392B" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="HeaderOrange">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#D35400" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="HeaderBlue">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#2980B9" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="HeaderPurple">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#8E44AD" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="MoneyBold">
+   <Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#15803D"/>
+   <NumberFormat ss:Format="#,##0"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Tổng Hợp KPI">
+  <Table>
+   <Column ss:Width="280"/>
+   <Column ss:Width="150"/>
+   <Column ss:Width="260"/>
+   <Row ss:Height="32">
+    <Cell ss:StyleID="Title"><Data ss:Type="String">🍔 BẢNG ĐIỀU KHIỂN TỔNG HỢP - FOOD STATION 7A (PHƯỚC THIỆN)</Data></Cell>
+    <Cell ss:StyleID="Title"><Data ss:Type="String"></Data></Cell>
+    <Cell ss:StyleID="Title"><Data ss:Type="String">Số 2, Đường 7A, KP. Phước Thiện, P. Long Bình, TP. Thủ Đức</Data></Cell>
+   </Row>
+   <Row ss:Height="28">
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">CHỈ SỐ BÁO CÁO</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">GIÁ TRỊ (VNĐ / ĐƠN)</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">GHI CHÚ TỰ ĐỘNG</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">💰 Tổng Doanh Thu Hôm Nay</Data></Cell>
+    <Cell ss:StyleID="MoneyBold"><Data ss:Type="Number">0</Data></Cell>
+    <Cell><Data ss:Type="String">Tự động cộng từ Sheet Đơn Hàng</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">📦 Tổng Số Đơn Hàng Hôm Nay</Data></Cell>
+    <Cell ss:StyleID="MoneyBold"><Data ss:Type="Number">0</Data></Cell>
+    <Cell><Data ss:Type="String">Đơn tại quầy + Mang về + QR Bàn + App</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">💵 Tiền Mặt Thu Tại Quầy</Data></Cell>
+    <Cell ss:StyleID="MoneyBold"><Data ss:Type="Number">0</Data></Cell>
+    <Cell><Data ss:Type="String">Tiền mặt thực thu</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">💳 Tiền Chuyển Khoản (QR/Bank)</Data></Cell>
+    <Cell ss:StyleID="MoneyBold"><Data ss:Type="Number">0</Data></Cell>
+    <Cell><Data ss:Type="String">Đối soát tài khoản ngân hàng</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">💸 Tổng Chi Phí Đi Chợ / Nhập Hàng Hôm Nay</Data></Cell>
+    <Cell ss:StyleID="MoneyBold"><Data ss:Type="Number">0</Data></Cell>
+    <Cell><Data ss:Type="String">Tự động cộng từ Sheet Chi Phí &amp; Nhập Hàng</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">✨ LỢI NHUẬN DÒNG TIỀN HÔM NAY (Thu - Chi)</Data></Cell>
+    <Cell ss:StyleID="MoneyBold"><Data ss:Type="Number">0</Data></Cell>
+    <Cell><Data ss:Type="String">Doanh thu trừ Chi phí trong ngày</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="Đơn Hàng">
+  <Table>
+   <Row ss:Height="28">
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Mã Đơn</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Ngày</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Giờ</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Nguồn Đơn</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Nhân Viên / Bàn</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Ca Làm Việc</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Chi Tiết Món Ăn</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Số Lượng Món</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Tổng Tiền (VNĐ)</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Phương Thức TT</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Tiền Khách Đưa</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Tiền Thối</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">Ghi Chú</Data></Cell>
+    <Cell ss:StyleID="HeaderGreen"><Data ss:Type="String">JSON Lines</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="Chi Phí &amp; Nhập Hàng">
+  <Table>
+   <Row ss:Height="28">
+    <Cell ss:StyleID="HeaderRed"><Data ss:Type="String">Mã Phiếu Chi</Data></Cell>
+    <Cell ss:StyleID="HeaderRed"><Data ss:Type="String">Ngày</Data></Cell>
+    <Cell ss:StyleID="HeaderRed"><Data ss:Type="String">Giờ</Data></Cell>
+    <Cell ss:StyleID="HeaderRed"><Data ss:Type="String">Người Chi</Data></Cell>
+    <Cell ss:StyleID="HeaderRed"><Data ss:Type="String">Ca Làm Việc</Data></Cell>
+    <Cell ss:StyleID="HeaderRed"><Data ss:Type="String">Hạng Mục Chi Phí</Data></Cell>
+    <Cell ss:StyleID="HeaderRed"><Data ss:Type="String">Nội Dung Chi Tiết (Đi chợ / Nhập hàng)</Data></Cell>
+    <Cell ss:StyleID="HeaderRed"><Data ss:Type="String">Số Tiền Chi (VNĐ)</Data></Cell>
+    <Cell ss:StyleID="HeaderRed"><Data ss:Type="String">Hình Thức TT</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="Báo Cáo Cuối Ca">
+  <Table>
+   <Row ss:Height="28">
+    <Cell ss:StyleID="HeaderOrange"><Data ss:Type="String">Ngày</Data></Cell>
+    <Cell ss:StyleID="HeaderOrange"><Data ss:Type="String">Giờ Chốt</Data></Cell>
+    <Cell ss:StyleID="HeaderOrange"><Data ss:Type="String">Nhân Viên</Data></Cell>
+    <Cell ss:StyleID="HeaderOrange"><Data ss:Type="String">Ca Làm Việc</Data></Cell>
+    <Cell ss:StyleID="HeaderOrange"><Data ss:Type="String">Tổng Doanh Thu Ca</Data></Cell>
+    <Cell ss:StyleID="HeaderOrange"><Data ss:Type="String">Tiền Mặt Trong Quầy</Data></Cell>
+    <Cell ss:StyleID="HeaderOrange"><Data ss:Type="String">Tiền Chuyển Khoản</Data></Cell>
+    <Cell ss:StyleID="HeaderOrange"><Data ss:Type="String">Chi Trong Ca</Data></Cell>
+    <Cell ss:StyleID="HeaderOrange"><Data ss:Type="String">Ghi Chú Bàn Giao</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="Chấm Công">
+  <Table>
+   <Row ss:Height="28">
+    <Cell ss:StyleID="HeaderBlue"><Data ss:Type="String">Ngày</Data></Cell>
+    <Cell ss:StyleID="HeaderBlue"><Data ss:Type="String">Giờ</Data></Cell>
+    <Cell ss:StyleID="HeaderBlue"><Data ss:Type="String">Nhân Viên</Data></Cell>
+    <Cell ss:StyleID="HeaderBlue"><Data ss:Type="String">Thao Tác</Data></Cell>
+    <Cell ss:StyleID="HeaderBlue"><Data ss:Type="String">Ca Làm Việc</Data></Cell>
+    <Cell ss:StyleID="HeaderBlue"><Data ss:Type="String">Ghi Chú</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="Off Ca">
+  <Table>
+   <Row ss:Height="28">
+    <Cell ss:StyleID="HeaderPurple"><Data ss:Type="String">Thời Gian Gửi</Data></Cell>
+    <Cell ss:StyleID="HeaderPurple"><Data ss:Type="String">Nhân Viên</Data></Cell>
+    <Cell ss:StyleID="HeaderPurple"><Data ss:Type="String">Ngày Xin Nghỉ</Data></Cell>
+    <Cell ss:StyleID="HeaderPurple"><Data ss:Type="String">Ca Xin Nghỉ</Data></Cell>
+    <Cell ss:StyleID="HeaderPurple"><Data ss:Type="String">Lý Do Xin Nghỉ</Data></Cell>
+    <Cell ss:StyleID="HeaderPurple"><Data ss:Type="String">Trạng Thái</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+</Workbook>

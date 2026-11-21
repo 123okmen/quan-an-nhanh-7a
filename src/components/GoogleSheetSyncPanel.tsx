@@ -167,7 +167,6 @@ export default function GoogleSheetSyncPanel({ onSynced }: Props) {
             <a
               href={sheetViewInput}
               target="_blank" rel="noopener noreferrer"
-              rel="noreferrer"
               style={{
                 background: '#10b981',
                 color: '#0f172a',
@@ -259,7 +258,6 @@ export default function GoogleSheetSyncPanel({ onSynced }: Props) {
               <a
                 href="https://sheets.new"
                 target="_blank" rel="noopener noreferrer"
-                rel="noreferrer"
                 style={{
                   display: 'inline-block',
                   background: '#10b981',

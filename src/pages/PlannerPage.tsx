@@ -593,7 +593,7 @@ export default function PlannerPage() {
     );
 
   return (
-    <LoginGate expectedPassword={isShareholderMode ? undefined : "khoinghiep123"} storageKey="auth_planner" title="Khu Vực Báo Cáo Doanh Thu">
+    <LoginGate expectedPassword={isShareholderMode ? undefined : "sha256:eae39af499508d583ee9a1a886991c6432d3e902fb7d95732f06a17eac64e407"} storageKey="auth_planner" title="Khu Vực Báo Cáo Doanh Thu">
       <div className="rpt-container">
         
         {/* HEADER BÁO CÁO */}

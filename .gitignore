@@ -1,5 +1,17 @@
-node_modules/
-dist/
+# Security: Never commit secrets or credentials
+*.key
 *.log
-.env
+*.pem
+*.sqlite*
+*credentials*.json
+*service_account*.json
+*token*.json
 .DS_Store
+.env
+.env.*
+api key.txt
+dist/
+generate_planner.js
+generate_planner.js.disabled
+node_modules/
+office_config_247.json

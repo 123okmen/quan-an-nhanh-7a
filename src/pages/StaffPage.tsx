@@ -607,7 +607,7 @@ export default function StaffPage() {
     : 'https://123okmen.github.io/quan-an-nhanh-7a/';
 
   return (
-    <LoginGate expectedPassword="khoinghiep123" storageKey="auth_staff" title="Khu Vực Nhân Viên">
+    <LoginGate expectedPassword="sha256:eae39af499508d583ee9a1a886991c6432d3e902fb7d95732f06a17eac64e407" storageKey="auth_staff" title="Khu Vực Nhân Viên">
       <div style={{ padding: '1.5rem', maxWidth: '1240px', margin: '0 auto', color: 'var(--text-primary)' }}>
         <h1 style={{ color: '#10b981', textAlign: 'center', marginBottom: '0.4rem' }}>🧑‍🍳 POS Bán Hàng · In Bill · Quản Lý Ca</h1>
         <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '1.2rem', fontSize: '0.9rem' }}>

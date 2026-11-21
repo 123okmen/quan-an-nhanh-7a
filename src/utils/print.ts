@@ -52,6 +52,17 @@ export function fmtPrintPlainVND(n: number): string {
 }
 
 /** Định dạng tiền tệ an toàn cho bản in HTML (chuẩn phông Arial/Segoe UI) */
+/** Escape HTML special characters to prevent Stored/DOM XSS in receipt & kitchen print views (CWE-79) */
+export function escapeHtml(str: unknown): string {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function fmtPrintHtmlVND(n: number): string {
   return (n || 0).toLocaleString('vi-VN') + ' đ';
 }
@@ -237,13 +248,13 @@ export function generateReceiptHtml(order: Order, mode: PrintDocMode = 'receipt'
       <div style="padding: 5px 0; border-bottom: 1.5px dashed #000;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 6px;">
           <span style="font-size: ${baseFontPx + 3}px; font-weight: 900; color: #000; line-height: 1.2;">
-            ${idx + 1}. ${l.name}
+            ${idx + 1}. ${escapeHtml(l.name)}
           </span>
           <span style="font-size: ${baseFontPx + 5}px; font-weight: 900; border: 2px solid #000; padding: 1px 6px; border-radius: 4px; white-space: nowrap; color: #000;">
             x${l.qty}
           </span>
         </div>
-        ${l.note ? `<div style="margin-top: 3px; font-size: ${baseFontPx + 1.5}px; font-weight: 800; background: #eee; padding: 2px 5px; border-left: 3px solid #000; color: #000;">⚠️ GHI CHÚ: ${l.note}</div>` : ''}
+        ${l.note ? `<div style="margin-top: 3px; font-size: ${baseFontPx + 1.5}px; font-weight: 800; background: #eee; padding: 2px 5px; border-left: 3px solid #000; color: #000;">⚠️ GHI CHÚ: ${escapeHtml(l.note)}</div>` : ''}
       </div>
     `).join('');
 
@@ -252,11 +263,11 @@ export function generateReceiptHtml(order: Order, mode: PrintDocMode = 'receipt'
         <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
           <div style="font-size: ${baseFontPx + 3}px; font-weight: 900; text-transform: uppercase;">👨‍🍳 PHIẾU CHẾ BIẾN BẾP</div>
           <div style="font-size: ${baseFontPx + 5}px; font-weight: 900; margin-top: 3px; border: 2px solid #000; display: inline-block; padding: 2px 10px;">
-            ${typeLabel}
+            ${escapeHtml(typeLabel)}
           </div>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: ${baseFontPx}px; font-weight: 700; border-bottom: 1px dashed #000; padding-bottom: 3px; margin-bottom: 4px;">
-          <span>Mã: #${order.id}</span>
+          <span>Mã: #${escapeHtml(order.id)}</span>
           <span>Giờ: ${dateStr.split(' ')[0] || dateStr}</span>
         </div>
         <div>
@@ -264,7 +275,7 @@ export function generateReceiptHtml(order: Order, mode: PrintDocMode = 'receipt'
         </div>
         ${order.note ? `
           <div style="margin-top: 5px; padding: 4px; border: 2px solid #000; font-size: ${baseFontPx + 1}px; font-weight: 900;">
-            📌 GHI CHÚ CẢ ĐƠN: ${order.note}
+            📌 GHI CHÚ CẢ ĐƠN: ${escapeHtml(order.note)}
           </div>
         ` : ''}
         <div style="text-align: right; margin-top: 6px; font-size: ${baseFontPx + 2}px; font-weight: 900;">
@@ -282,8 +293,8 @@ export function generateReceiptHtml(order: Order, mode: PrintDocMode = 'receipt'
   const linesHtml = lines.map(l => `
     <tr>
       <td style="padding: 3px 0; border-bottom: 1px dotted #000; word-break: break-word;">
-        <div style="font-weight: 700; font-size: ${baseFontPx}px; color: #000;">${l.name}</div>
-        ${l.note ? `<div style="font-size: ${baseFontPx - 1.5}px; font-style: italic; color: #000;">➥ ${l.note}</div>` : ''}
+        <div style="font-weight: 700; font-size: ${baseFontPx}px; color: #000;">${escapeHtml(l.name)}</div>
+        ${l.note ? `<div style="font-size: ${baseFontPx - 1.5}px; font-style: italic; color: #000;">➥ ${escapeHtml(l.note)}</div>` : ''}
       </td>
       <td style="text-align: center; padding: 3px 0; border-bottom: 1px dotted #000; vertical-align: top; font-weight: 700; font-size: ${baseFontPx}px; color: #000;">${l.qty}</td>
       <td style="text-align: right; padding: 3px 0; border-bottom: 1px dotted #000; vertical-align: top; font-weight: 700; font-size: ${baseFontPx}px; white-space: nowrap; color: #000;">${fmtPrintHtmlVND(l.price * l.qty)}</td>
@@ -300,8 +311,8 @@ export function generateReceiptHtml(order: Order, mode: PrintDocMode = 'receipt'
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin: 4px 0; font-size: ${baseFontPx}px;">
-        <span style="font-weight: 900; border: 1.5px solid #000; padding: 1px 6px; border-radius: 3px; text-transform: uppercase;">${typeLabel}</span>
-        <span style="font-weight: 800;">#${order.id}</span>
+        <span style="font-weight: 900; border: 1.5px solid #000; padding: 1px 6px; border-radius: 3px; text-transform: uppercase;">${escapeHtml(typeLabel)}</span>
+        <span style="font-weight: 800;">#${escapeHtml(order.id)}</span>
       </div>
 
       <div style="font-size: ${baseFontPx - 1.5}px; margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px dashed #000; line-height: 1.35;">
@@ -310,11 +321,11 @@ export function generateReceiptHtml(order: Order, mode: PrintDocMode = 'receipt'
           <span>${shiftName.split('(')[0] || ''}</span>
         </div>
         <div style="display: flex; justify-content: space-between;">
-          <span>Thu ngân: ${order.staff || 'Quầy'}</span>
+          <span>Thu ngân: ${escapeHtml(order.staff || 'Quầy')}</span>
           <span>TT: <strong>${paymentText}</strong></span>
         </div>
-        ${order.customerPhone ? `<div>📞 SĐT Khách: <strong>${order.customerPhone}</strong></div>` : ''}
-        ${order.customerAddress ? `<div>📍 Giao đến: <strong>${order.customerAddress}</strong></div>` : ''}
+        ${order.customerPhone ? `<div>📞 SĐT Khách: <strong>${escapeHtml(order.customerPhone)}</strong></div>` : ''}
+        ${order.customerAddress ? `<div>📍 Giao đến: <strong>${escapeHtml(order.customerAddress)}</strong></div>` : ''}
       </div>
 
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 4px; table-layout: fixed;">
@@ -361,7 +372,7 @@ export function generateReceiptHtml(order: Order, mode: PrintDocMode = 'receipt'
         ` : ''}
         ${order.note ? `
         <div style="margin: 3px 0 1px 0; font-size: ${baseFontPx - 1}px; font-weight: 700;">
-          * Ghi chú: ${order.note}
+          * Ghi chú: ${escapeHtml(order.note)}
         </div>
         ` : ''}
       </div>
@@ -635,7 +646,7 @@ function renderBleControlHtml(): string {
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div style="font-size: 0.8rem; font-weight: 800; color: #10b981; display: flex; align-items: center; gap: 6px;">
             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
-            ĐÃ KẾT NỐI: ${devName}
+            ĐÃ KẾT NỐI: ${escapeHtml(devName)}
           </div>
           <button id="btn-ble-disconnect" type="button" style="background: #ef4444; color: #fff; border: none; border-radius: 4px; padding: 3px 8px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">
             🔌 Ngắt kết nối

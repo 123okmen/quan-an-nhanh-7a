@@ -30,12 +30,38 @@ const mimeTypes = {
   '.svg': 'image/svg+xml'
 };
 
+const SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'SAMEORIGIN',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'bluetooth=(self), camera=(self), microphone=(), geolocation=()',
+  'Cross-Origin-Opener-Policy': 'same-origin'
+};
+
+const resolvedDistDir = path.resolve(distDir);
+
 const server = http.createServer((req, res) => {
-  let reqUrl = (req.url || '/').split('?')[0];
-  let filePath = path.join(distDir, reqUrl);
+  let reqUrl = '/';
+  try {
+    reqUrl = decodeURIComponent((req.url || '/').split('?')[0]);
+  } catch {
+    res.writeHead(400, { ...SECURITY_HEADERS, 'Content-Type': 'text/plain; charset=UTF-8' });
+    return res.end('400 Bad Request');
+  }
+  if (reqUrl.includes('\0')) {
+    res.writeHead(400, { ...SECURITY_HEADERS, 'Content-Type': 'text/plain; charset=UTF-8' });
+    return res.end('400 Bad Request');
+  }
+
+  let filePath = path.resolve(resolvedDistDir, '.' + (reqUrl.startsWith('/') ? reqUrl : '/' + reqUrl));
+
+  if (filePath !== path.join(resolvedDistDir, 'index.html') && !filePath.startsWith(resolvedDistDir + path.sep)) {
+    res.writeHead(403, { ...SECURITY_HEADERS, 'Content-Type': 'text/plain; charset=UTF-8' });
+    return res.end('403 Forbidden');
+  }
 
   if (reqUrl === '/' || !fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-    filePath = path.join(distDir, 'index.html');
+    filePath = path.join(resolvedDistDir, 'index.html');
   }
 
   const ext = path.extname(filePath).toLowerCase();
@@ -43,10 +69,10 @@ const server = http.createServer((req, res) => {
 
   fs.readFile(filePath, (err, content) => {
     if (err) {
-      res.writeHead(500, { 'Content-Type': 'text/plain; charset=UTF-8' });
-      res.end('Server Error: ' + err.code);
+      res.writeHead(404, { ...SECURITY_HEADERS, 'Content-Type': 'text/plain; charset=UTF-8' });
+      res.end('404 Not Found');
     } else {
-      res.writeHead(200, { 'Content-Type': contentType });
+      res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': contentType });
       res.end(content);
     }
   });

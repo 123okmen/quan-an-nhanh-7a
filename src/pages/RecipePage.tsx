@@ -274,7 +274,7 @@ export default function RecipePage() {
   };
 
   return (
-    <LoginGate expectedPassword="sammixnv" storageKey="auth_recipes" title="Khu Vực Nhân Viên">
+    <LoginGate expectedPassword="sha256:da2fdf30817647c659c0918a37f79894d6b09fd91f45e0b200fff4629f474845" storageKey="auth_recipes" title="Khu Vực Nhân Viên">
       <div style={{ padding: '1.5rem', maxWidth: '1100px', margin: '0 auto', color: 'var(--text-primary)', fontFamily: 'sans-serif' }}>
         <h1 style={{ color: '#10b981', textAlign: 'center', marginBottom: '0.5rem', fontSize: '2rem' }}>🧑‍🍳 Trang Nhập Đơn & Báo Cáo Nhân Viên</h1>
         <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '2rem' }}>Chấm công, Nhập đơn bán hàng, Quản lý đơn & Báo cáo doanh thu ca</p>

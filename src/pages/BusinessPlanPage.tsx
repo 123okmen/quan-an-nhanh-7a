@@ -343,9 +343,8 @@ export default function BusinessPlanPage() {
         className="glass-panel"
         style={{
           marginBottom: '1.5rem',
-          background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.92) 100%)',
-          borderTop: '4px solid #f59e0b'
-        }}
+          background: 'rgba(15, 23, 42, 0.95)',
+           }
       >
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
           <div>
@@ -482,7 +481,7 @@ export default function BusinessPlanPage() {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
-                <tr style={{ background: 'rgba(15, 23, 42, 0.9)', borderBottom: '2px solid #f59e0b', textAlign: 'left' }}>
+                <tr style={{ background: 'rgba(15, 23, 42, 0.9)',  textAlign: 'left' }}>
                   <th style={{ padding: '10px' }}>Hạng Mục Vật Tư / Thiết Bị</th>
                   <th style={{ padding: '10px' }}>Quy Cách & Lưu Ý Thực Tế</th>
                   <th style={{ padding: '10px', textAlign: 'center' }}>SL</th>
@@ -494,7 +493,7 @@ export default function BusinessPlanPage() {
                 {CAPEX_ITEMS.map(item => {
                   const cost = capexMode === 'budget' ? item.budgetPrice : item.standardPrice;
                   return (
-                    <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: item.status === 'owned' ? 'rgba(16, 185, 129, 0.08)' : undefined }}>
+                    <tr key={item.id} style={{ 255,255,0.07)', background: item.status === 'owned' ? 'rgba(16, 185, 129, 0.08)' : undefined }}>
                       <td style={{ padding: '10px', fontWeight: 700 }}>
                         {item.name}
                         {item.fromZaloList && (
@@ -524,7 +523,7 @@ export default function BusinessPlanPage() {
                 })}
               </tbody>
               <tfoot>
-                <tr style={{ background: 'rgba(245, 158, 11, 0.15)', borderTop: '2px solid #f59e0b', fontSize: '1rem' }}>
+                <tr style={{ background: 'rgba(245, 158, 11, 0.15)',  fontSize: '1rem' }}>
                   <td colSpan={4} style={{ padding: '12px 10px', fontWeight: 900, color: '#fbbf24' }}>
                     TỔNG VỐN ĐẦU TƯ SETUP BAN ĐẦU SÁT THỰC TẾ ({capexMode === 'budget' ? 'PHƯƠNG ÁN TỐI ƯU' : 'PHƯƠNG ÁN MỚI 100%'})
                   </td>
@@ -571,7 +570,7 @@ export default function BusinessPlanPage() {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                 <thead>
-                  <tr style={{ background: 'rgba(15, 23, 42, 0.9)', borderBottom: '2px solid #f59e0b', textAlign: 'left' }}>
+                  <tr style={{ background: 'rgba(15, 23, 42, 0.9)',  textAlign: 'left' }}>
                     <th style={{ padding: '10px' }}>Khoản Mục Chi Phí Vận Hành Thực Tế</th>
                     <th style={{ padding: '10px' }}>Diễn Giải Chi Tiết Định Mức</th>
                     <th style={{ padding: '10px', textAlign: 'right' }}>Chi Phí / Tháng</th>
@@ -579,37 +578,37 @@ export default function BusinessPlanPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '10px', fontWeight: 700 }}>1. Chi phí Mặt bằng (Số 2 Đường 7A, Phước Thiện)</td>
                     <td style={{ padding: '10px', color: '#cbd5e1' }}>Mặt bằng khu dân cư Phước Thiện (Có thể điều chỉnh ở tab Mô phỏng nếu mặt bằng nhà)</td>
                     <td style={{ padding: '10px', textAlign: 'right', fontWeight: 700, color: '#fef08a' }}>{fmtVND(rentMonthly)}</td>
                     <td style={{ padding: '10px', textAlign: 'right', color: '#94a3b8' }}>{fmtVND(Math.round(rentMonthly / 30))}</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '10px', fontWeight: 700 }}>2. Tiền Điện + Nước + Wifi</td>
                     <td style={{ padding: '10px', color: '#cbd5e1' }}>Tủ đông-mát chạy 24/24 + Bếp chiên nhúng + Nồi chiên ko dầu + Nồi cơm + Quạt + Đèn bảng hiệu</td>
                     <td style={{ padding: '10px', textAlign: 'right', fontWeight: 700, color: '#fef08a' }}>{fmtVND(roiMetrics.elecWaterInternet)}</td>
                     <td style={{ padding: '10px', textAlign: 'right', color: '#94a3b8' }}>{fmtVND(Math.round(roiMetrics.elecWaterInternet / 30))}</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '10px', fontWeight: 700 }}>3. Tiền Gas công nghiệp (Bếp khè Wok + Nồi hấp bánh bao)</td>
                     <td style={{ padding: '10px', color: '#cbd5e1' }}>Khoảng 3.5 – 4 bình gas 12kg/tháng (Nồi hấp giữ nóng vỏ bánh bao liên tục + Bếp khè xào lửa lớn)</td>
                     <td style={{ padding: '10px', textAlign: 'right', fontWeight: 700, color: '#fef08a' }}>{fmtVND(roiMetrics.gasCost)}</td>
                     <td style={{ padding: '10px', textAlign: 'right', color: '#94a3b8' }}>{fmtVND(Math.round(roiMetrics.gasCost / 30))}</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '10px', fontWeight: 700 }}>4. Dầu chiên thay mới + Sốt bình xịt, Tương ớt, Vệ sinh, Khấu hao vặt</td>
                     <td style={{ padding: '10px', color: '#cbd5e1' }}>Dầu chiên nhúng hao hụt/thay mới định kỳ + Tương ớt/Mayo khách xịt thêm + Nước rửa chén, túi rác</td>
                     <td style={{ padding: '10px', textAlign: 'right', fontWeight: 700, color: '#fef08a' }}>{fmtVND(roiMetrics.oilSauceMisc)}</td>
                     <td style={{ padding: '10px', textAlign: 'right', color: '#94a3b8' }}>{fmtVND(Math.round(roiMetrics.oilSauceMisc / 30))}</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '10px', fontWeight: 700 }}>5. Hao hụt hủy hàng cuối ngày (3% Doanh thu)</td>
                     <td style={{ padding: '10px', color: '#cbd5e1' }}>Vỏ bánh bao hấp lâu bị ỉu, cơm chiên/rau dưa dư cuối ca, rớt món (Đã cộng vào tổng COGS)</td>
                     <td style={{ padding: '10px', textAlign: 'right', fontWeight: 700, color: '#fca5a5' }}>{fmtVND(roiMetrics.monthlyWaste)}</td>
                     <td style={{ padding: '10px', textAlign: 'right', color: '#94a3b8' }}>{fmtVND(Math.round(roiMetrics.monthlyWaste / 30))}</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '10px', fontWeight: 700 }}>6. Quỹ Lương Nhân Sự & Ăn Ca ({hrModel === 'lean' ? 'Chủ Đứng Bếp + 2 Phụ Ca' : 'Thuê Trọn Gói 100%'})</td>
                     <td style={{ padding: '10px', color: '#cbd5e1' }}>
                       {hrModel === 'lean'
@@ -621,7 +620,7 @@ export default function BusinessPlanPage() {
                   </tr>
                 </tbody>
                 <tfoot>
-                  <tr style={{ background: 'rgba(239, 68, 68, 0.15)', borderTop: '2px solid #ef4444', fontSize: '0.98rem' }}>
+                  <tr style={{ background: 'rgba(239, 68, 68, 0.15)',  fontSize: '0.98rem' }}>
                     <td colSpan={2} style={{ padding: '12px 10px', fontWeight: 900, color: '#fca5a5' }}>
                       TỔNG ĐỊNH PHÍ VẬN HÀNH HÀNG THÁNG (CHƯA GỒM NGUYÊN LIỆU CHẾ BIẾN THEO PHẦN)
                     </td>
@@ -647,7 +646,7 @@ export default function BusinessPlanPage() {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem' }}>
                 <thead>
-                  <tr style={{ background: 'rgba(15, 23, 42, 0.9)', borderBottom: '2px solid #10b981', textAlign: 'left' }}>
+                  <tr style={{ background: 'rgba(15, 23, 42, 0.9)',  textAlign: 'left' }}>
                     <th style={{ padding: '10px' }}>Tên Món Trong Menu</th>
                     <th style={{ padding: '10px', textAlign: 'right' }}>Giá Bán</th>
                     <th style={{ padding: '10px', textAlign: 'right' }}>Giá Vốn Thực (Thức ăn + Hộp)</th>
@@ -661,7 +660,7 @@ export default function BusinessPlanPage() {
                     const gross = item.price - cost;
                     const pct = Number(((cost / item.price) * 100).toFixed(1));
                     return (
-                      <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                      <tr key={item.id} style={{ 255,255,0.06)' }}>
                         <td style={{ padding: '9px 10px', fontWeight: 700 }}>{item.name}</td>
                         <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 700, color: '#fef08a' }}>{fmtVND(item.price)}</td>
                         <td style={{ padding: '9px 10px', textAlign: 'right', color: '#fca5a5' }}>{fmtVND(cost)}</td>
@@ -775,7 +774,7 @@ export default function BusinessPlanPage() {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                 <thead>
-                  <tr style={{ background: 'rgba(15, 23, 42, 0.9)', borderBottom: '2px solid #10b981', textAlign: 'left' }}>
+                  <tr style={{ background: 'rgba(15, 23, 42, 0.9)',  textAlign: 'left' }}>
                     <th style={{ padding: '10px' }}>Vị Trí Nhân Sự</th>
                     <th style={{ padding: '10px' }}>Khung Giờ Làm Việc</th>
                     <th style={{ padding: '10px' }}>Mức Lương Thực Tế</th>
@@ -784,7 +783,7 @@ export default function BusinessPlanPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '10px', fontWeight: 700, color: '#fbbf24' }}>
                       1. Bếp Chính (Chảo Wok Cơm/Mì Xào)
                     </td>
@@ -799,7 +798,7 @@ export default function BusinessPlanPage() {
                       {hrModel === 'lean' ? '0đ (Công chủ quán)' : '9.600.000đ'}
                     </td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '10px', fontWeight: 700, color: '#60a5fa' }}>
                       2. NV Phụ Ca Sáng (Quầy BBK & Sơ chế trưa)
                     </td>
@@ -812,7 +811,7 @@ export default function BusinessPlanPage() {
                       3.750.000đ
                     </td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '10px', fontWeight: 700, color: '#f472b6' }}>
                       3. NV Phụ Ca Tối (Quầy BBK, Đóng hộp & Thu ngân)
                     </td>
@@ -847,7 +846,7 @@ export default function BusinessPlanPage() {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem' }}>
                 <thead>
-                  <tr style={{ background: 'rgba(15, 23, 42, 0.9)', borderBottom: '2px solid #f59e0b', textAlign: 'left' }}>
+                  <tr style={{ background: 'rgba(15, 23, 42, 0.9)',  textAlign: 'left' }}>
                     <th style={{ padding: '10px' }}>Chỉ Số Tài Chính Thực Tế</th>
                     <th style={{ padding: '10px', textAlign: 'right', color: '#93c5fd' }}>Kịch Bản 1: Mới Mở / Vắng Khách<br /><span style={{ fontSize: '0.75rem', fontWeight: 400 }}>(65 phần/ngày ~ 2.0tr/ngày)</span></th>
                     <th style={{ padding: '10px', textAlign: 'right', color: '#fde047' }}>Kịch Bản 2: Ổn Định Thực Tế<br /><span style={{ fontSize: '0.75rem', fontWeight: 400 }}>(85 phần/ngày ~ 2.63tr/ngày)</span></th>
@@ -855,37 +854,37 @@ export default function BusinessPlanPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '9px 10px', fontWeight: 700 }}>1. Doanh thu 1 tháng (30 ngày)</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 700 }}>60.000.000đ</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 700, color: '#fde047' }}>79.050.000đ</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 700, color: '#34d399' }}>106.500.000đ</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '9px 10px' }}>2. Giá vốn thức ăn + Hộp xốp + Hao hụt 3% (~57.5%)</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', color: '#fca5a5' }}>−34.500.000đ</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', color: '#fca5a5' }}>−45.540.000đ</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', color: '#fca5a5' }}>−61.200.000đ</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.03)' }}>
+                  <tr style={{ 255,255,0.07)', background: 'rgba(255,255,255,0.03)' }}>
                     <td style={{ padding: '9px 10px', fontWeight: 700 }}>3. Lợi nhuận gộp (Gross Profit ~42.5%)</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 700 }}>25.500.000đ</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 700 }}>33.510.000đ</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 700 }}>45.300.000đ</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '9px 10px' }}>4. Chi phí Mặt bằng + Điện Nước + Gas + Dầu/Gia vị phụ</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', color: '#fca5a5' }}>−10.200.000đ</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', color: '#fca5a5' }}>−10.200.000đ</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', color: '#fca5a5' }}>−11.200.000đ</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <tr style={{ 255,255,0.07)' }}>
                     <td style={{ padding: '9px 10px' }}>5. Lương 2 Nhân viên phụ ca Sáng & Tối + Ăn ca</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', color: '#fca5a5' }}>−8.100.000đ</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', color: '#fca5a5' }}>−8.100.000đ</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', color: '#fca5a5' }}>−9.500.000đ</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.12)', background: 'rgba(16, 185, 129, 0.12)' }}>
+                  <tr style={{ 255,255,0.12)', background: 'rgba(16, 185, 129, 0.12)' }}>
                     <td style={{ padding: '10px', fontWeight: 800, color: '#34d399' }}>
                       👉 THU NHẬP RÒNG CẦM VỀ (NẾU CHỦ TỰ ĐỨNG BẾP CHÍNH)
                     </td>
@@ -1009,23 +1008,23 @@ export default function BusinessPlanPage() {
                 </h3>
 
                 <div style={{ display: 'grid', gap: '8px', fontSize: '0.9rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed rgba(255,255,255,0.1)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', 255,255,0.1)' }}>
                     <span>Doanh thu 1 ngày:</span>
                     <strong style={{ color: '#fef08a' }}>{fmtVND(roiMetrics.dailyRevenue)}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed rgba(255,255,255,0.1)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', 255,255,0.1)' }}>
                     <span>Doanh thu 1 tháng (30 ngày):</span>
                     <strong style={{ color: '#fbbf24', fontSize: '1.05rem' }}>{fmtVND(roiMetrics.monthlyRevenue)}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed rgba(255,255,255,0.1)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', 255,255,0.1)' }}>
                     <span>Trừ Giá vốn + Hộp xốp + Hao hụt 3% ({roiMetrics.cogsPercent}%):</span>
                     <strong style={{ color: '#fca5a5' }}>−{fmtVND(roiMetrics.monthlyCogs)}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed rgba(255,255,255,0.1)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', 255,255,0.1)' }}>
                     <span>Lợi nhuận gộp thực tế (Gross Profit):</span>
                     <strong style={{ color: '#34d399' }}>{fmtVND(roiMetrics.monthlyGrossProfit)}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed rgba(255,255,255,0.1)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', 255,255,0.1)' }}>
                     <span>Trừ Định phí (Mặt bằng, Điện, Gas, Dầu, Nhân sự):</span>
                     <strong style={{ color: '#fca5a5' }}>−{fmtVND(roiMetrics.totalFixedOpex)}</strong>
                   </div>

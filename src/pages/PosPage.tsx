@@ -139,7 +139,7 @@ export default function PosPage() {
                     <div style={{ minWidth: '80px', textAlign: 'right', fontWeight: 'bold', color: '#10b981' }}>{fmtVND(l.price * l.qty)}</div>
                   </div>
                 ))}
-                <div style={{ borderTop: '1px dashed var(--glass-border)', margin: '12px 0', paddingTop: '12px' }}>
+                <div style={{  margin: '12px 0', paddingTop: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 'bold' }}>
                     <span>Tổng tiền</span><span style={{ color: '#10b981' }}>{fmtVND(total)}</span>
                   </div>
@@ -221,7 +221,7 @@ export default function PosPage() {
             <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', minWidth: '640px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
               <thead>
-                <tr style={{ color: '#94a3b8', borderBottom: '1px solid var(--glass-border)' }}>
+                <tr style={{ color: '#94a3b8',  }>
                   <th style={{ padding: '8px' }}>Mã đơn</th>
                   <th style={{ padding: '8px' }}>Giờ</th>
                   <th style={{ padding: '8px' }}>Nhân viên</th>
@@ -233,7 +233,7 @@ export default function PosPage() {
               </thead>
               <tbody>
                 {todayOrders.map(o => (
-                  <tr key={o.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <tr key={o.id} style={{ 255,255,0.05)' }}>
                     <td style={{ padding: '8px', fontWeight: 'bold' }}>{o.id}</td>
                     <td style={{ padding: '8px' }}>{fmtTime(o.time)}</td>
                     <td style={{ padding: '8px' }}>{o.staff}</td>

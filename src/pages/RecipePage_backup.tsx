@@ -142,7 +142,7 @@ export default function RecipePage() {
 
         {/* Recipe Table Section */}
         <div className="glass-panel">
-          <h2 style={{ color: '#d35400', borderBottom: '2px solid #e67e22', paddingBottom: '0.5rem', marginBottom: '1rem' }}>SOP Nước Ép (Ép tươi từng ly)</h2>
+          <h2 style={{ color: '#d35400',  paddingBottom: '0.5rem', marginBottom: '1rem' }}>SOP Nước Ép (Ép tươi từng ly)</h2>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', background: 'rgba(255,255,255,0.8)', color: '#333' }}>
             <thead>
               <tr style={{ background: '#1e7145', color: 'white' }}>

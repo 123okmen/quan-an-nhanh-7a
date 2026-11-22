@@ -141,8 +141,8 @@ export default function GoogleSheetSyncPanel({ onSynced }: Props) {
           padding: '0.85rem 1.15rem',
           borderRadius: '12px',
           background: isConfigured
-            ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(15, 23, 42, 0.85))'
-            : 'linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(15, 23, 42, 0.9))',
+            ? 'rgba(16, 185, 129, 0.14)'
+            : 'rgba(245, 158, 11, 0.16)',
           border: isConfigured ? '1px solid rgba(16, 185, 129, 0.45)' : '1px solid rgba(245, 158, 11, 0.45)'
         }}
       >
@@ -364,7 +364,7 @@ export default function GoogleSheetSyncPanel({ onSynced }: Props) {
                 disabled={isWorking}
                 className="btn-primary"
                 style={{
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  background: '#10b981',
                   color: '#0f172a',
                   fontWeight: 900,
                   padding: '0.6rem 1.25rem',

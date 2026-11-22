@@ -685,7 +685,7 @@ export default function PlannerPage() {
           </div>
 
           {/* Card 2: Chi phí & Lợi nhuận dòng tiền hôm nay */}
-          <div className="rpt-card" style={{ borderColor: 'rgba(16, 185, 129, 0.4)', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(15, 23, 42, 0.85))' }}>
+          <div className="rpt-card" style={{ borderColor: 'rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.12)' }}>
             <div className="rpt-card-label">
               <span>✨ Thực Thu (Thu − Chi)</span>
               <span style={{ color: '#f87171' }}>Chi: -{fmtVND(todayMetrics.expenseToday)}</span>

@@ -374,7 +374,7 @@ export default function RecipePage() {
 
         {/* TAB NHẬP MÓN (ORDER POS ENTRY) */}
         <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '12px', background: 'rgba(255,255,255,0.95)', color: '#333', marginBottom: '2rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '1rem', borderBottom: '2px solid #27ae60', paddingBottom: '0.8rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '1rem',  paddingBottom: '0.8rem' }}>
             <h2 style={{ color: '#1e7145', margin: 0, fontSize: '1.4rem' }}>
               🛒 Tab Nhập Món {editingOrderId ? <span style={{ color: '#e67e22', fontSize: '1rem' }}>(Đang sửa Đơn #{editingOrderId})</span> : ''}
             </h2>
@@ -524,7 +524,7 @@ export default function RecipePage() {
                 </thead>
                 <tbody>
                   {orders.map((o) => (
-                    <tr key={o.id} style={{ background: editingOrderId === o.id ? '#fef9e7' : '#fff', borderBottom: '1px solid #eee' }}>
+                    <tr key={o.id} style={{ background: editingOrderId === o.id ? '#fef9e7' : '#fff',  }>
                       <td style={{ padding: '10px', border: '1px solid #ddd', fontWeight: 'bold', color: '#2c3e50' }}>#{o.id}</td>
                       <td style={{ padding: '10px', border: '1px solid #ddd', fontSize: '0.85rem' }}>{o.time}</td>
                       <td style={{ padding: '10px', border: '1px solid #ddd', fontSize: '0.9rem' }}>
@@ -569,9 +569,9 @@ export default function RecipePage() {
 
         {/* Recipe Table Section */}
         <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '12px', background: 'rgba(255,255,255,0.9)', color: '#333' }}>
-          <h2 style={{ color: '#d35400', borderBottom: '2px solid #e67e22', paddingBottom: '0.5rem', marginBottom: '1rem', fontSize: '1.3rem' }}>🍹 SOP Pha Chế Nước Ép & Nước Sâm</h2>
+          <h2 style={{ color: '#d35400',  paddingBottom: '0.5rem', marginBottom: '1rem', fontSize: '1.3rem' }}>🍹 SOP Pha Chế Nước Ép & Nước Sâm</h2>
           
-          <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#eef9f5', borderRadius: '8px', borderLeft: '4px solid #10b981' }}>
+          <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#eef9f5', borderRadius: '8px',  }>
             <h3 style={{ margin: '0 0 6px 0', color: '#047857', fontSize: '1.05rem' }}>🍵 1. Nước Sâm Mix (Nấu Sẵn & Rót Bình/Ly)</h3>
             <p style={{ margin: 0, fontSize: '0.9rem', color: '#374151' }}>
               Nước Sâm (Mía Lau, Củ Năng Táo Đỏ, Bông Cúc Nhãn Nhục) đã được <strong>nấu sẵn</strong>, ủ lạnh trong tủ mát. Nhân viên ca trực chỉ cần rót vào ly, thêm topping (nhãn nhục, táo đỏ, hạt chia) và đá theo định lượng.

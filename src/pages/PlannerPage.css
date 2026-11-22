@@ -1,11 +1,10 @@
 /* PlannerPage.css - Báo Cáo Doanh Thu Real-Time TRẠM KHỞI NGHIỆP */
-
 .rpt-container {
   padding: 1.5rem 1rem 3rem;
   max-width: 1200px;
   margin: 0 auto;
-  color: var(--text-primary, #f8fafc);
-  font-family: inherit;
+  color: var(--text-primary);
+  font-family: 'Manrope', system-ui, sans-serif;
 }
 
 /* Header */
@@ -17,13 +16,13 @@
   gap: 1rem;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  ;
 }
 
 .rpt-title {
   font-size: 1.6rem;
   font-weight: 800;
-  color: #f59e0b;
+  color: var(--accent-gold-light);
   margin: 0 0 0.35rem 0;
   display: flex;
   align-items: center;
@@ -32,7 +31,7 @@
 
 .rpt-subtitle {
   font-size: 0.88rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -61,38 +60,40 @@
   height: 8px;
   background-color: #10b981;
   border-radius: 50%;
-  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), inset 3px 0 0 #F59E0B;
   animation: rptPulse 1.8s infinite;
 }
 
 @keyframes rptPulse {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), inset 3px 0 0 #F59E0B; }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0), inset 3px 0 0 #F59E0B; }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0), inset 3px 0 0 #F59E0B; }
 }
 
 .rpt-btn-refresh {
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #e2e8f0;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
   padding: 0.45rem 0.85rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  transition: all 0.2s ease;
+  transition: background var(--duration-color) var(--ease-out),
+              border-color var(--duration-color) var(--ease-out),
+              color var(--duration-color) var(--ease-out);
 }
 
 .rpt-btn-refresh:hover {
-  background: rgba(51, 65, 85, 0.9);
-  border-color: #f59e0b;
-  color: #fff;
+  background: var(--bg-card-hover);
+  border-color: var(--accent-gold);
+  color: var(--text-primary);
 }
 
-/* THANH TRÊN - TOP KPI BAR */
+/* Thanh KPI */
 .rpt-top-bar {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -119,61 +120,63 @@
 }
 
 .rpt-card {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
   padding: 1.15rem 1.25rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-card), inset 3px 0 0 #F59E0B;
   position: relative;
   overflow: hidden;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform var(--duration-layout) var(--ease-out),
+              border-color var(--duration-color) var(--ease-out),
+              box-shadow var(--duration-layout) var(--ease-out);
 }
 
 .rpt-card:hover {
   transform: translateY(-2px);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--shadow-card-soft), var(--shadow-glow), inset 3px 0 0 #F59E0B;
+}
+
+.rpt-card:focus-within {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px var(--accent-gold-glow), inset 3px 0 0 #F59E0B;
 }
 
 .rpt-card-revenue {
   border-color: rgba(245, 158, 11, 0.45);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: rgba(245, 158, 11, 0.1);
 }
 
 .rpt-card-orders {
   border-color: rgba(59, 130, 246, 0.45);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .rpt-card-cash {
   border-color: rgba(16, 185, 129, 0.45);
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: rgba(16, 185, 129, 0.1);
 }
 
 .rpt-card-bank {
   border-color: rgba(168, 85, 247, 0.45);
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: rgba(168, 85, 247, 0.1);
 }
 
 .rpt-card-month {
   border-color: rgba(14, 165, 233, 0.45);
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: rgba(14, 165, 233, 0.1);
 }
 
 .rpt-card-label {
   font-size: 0.78rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-
-.rpt-card-revenue .rpt-card-label { color: #fbbf24; }
-.rpt-card-orders .rpt-card-label { color: #60a5fa; }
-.rpt-card-cash .rpt-card-label { color: #34d399; }
-.rpt-card-bank .rpt-card-label { color: #c084fc; }
-.rpt-card-month .rpt-card-label { color: #38bdf8; }
 
 .rpt-card-value {
   font-size: 1.65rem;
@@ -181,25 +184,20 @@
   line-height: 1.2;
   margin-bottom: 0.35rem;
   letter-spacing: -0.5px;
+  font-family: 'JetBrains Mono', monospace;
 }
-
-.rpt-card-revenue .rpt-card-value { color: #fef08a; }
-.rpt-card-orders .rpt-card-value { color: #93c5fd; }
-.rpt-card-cash .rpt-card-value { color: #a7f3d0; }
-.rpt-card-bank .rpt-card-value { color: #e9d5ff; }
-.rpt-card-month .rpt-card-value { color: #bae6fd; }
 
 .rpt-card-sub {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   gap: 0.4rem;
 }
 
-/* Secondary App badge bar (if app orders exist) */
+/* Secondary App badge bar */
 .rpt-app-strip {
-  background: rgba(30, 41, 59, 0.6);
+  background: var(--bg-card);
   border: 1px dashed rgba(59, 130, 246, 0.3);
   border-radius: 10px;
   padding: 0.5rem 1rem;
@@ -210,7 +208,7 @@
   justify-content: space-between;
   gap: 0.5rem;
   font-size: 0.82rem;
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 /* Nav Tabs */
@@ -223,49 +221,51 @@
 }
 
 .rpt-tab-btn {
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #94a3b8;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
   padding: 0.65rem 1.15rem;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: background var(--duration-color) var(--ease-out),
+              border-color var(--duration-color) var(--ease-out),
+              color var(--duration-color) var(--ease-out);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .rpt-tab-btn:hover {
-  background: rgba(51, 65, 85, 0.8);
-  color: #f1f5f9;
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
 }
 
 .rpt-tab-btn.active {
-  background: #f59e0b;
+  background: var(--accent-gold);
   color: #0f172a;
-  border-color: #f59e0b;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+  border-color: var(--accent-gold);
+  box-shadow: 0 4px 14px var(--accent-gold-glow), inset 3px 0 0 #F59E0B;
 }
 
 /* Sub-panels & Cards */
 .rpt-panel {
-  background: rgba(30, 41, 59, 0.65);
+  background: var(--bg-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-card), inset 3px 0 0 #F59E0B;
 }
 
 .rpt-panel-title {
   font-size: 1.15rem;
   font-weight: 800;
-  color: #e2e8f0;
+  color: var(--text-primary);
   margin: 0 0 1rem 0;
   display: flex;
   align-items: center;
@@ -289,22 +289,22 @@
 }
 
 .rpt-shift-box {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
   padding: 1rem;
   position: relative;
 }
 
 .rpt-shift-box.active-shift {
-  border-color: #f59e0b;
+  border-color: var(--accent-gold);
   background: rgba(245, 158, 11, 0.05);
 }
 
 .rpt-shift-box-title {
   font-size: 0.88rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--text-primary);
   margin-bottom: 0.6rem;
   display: flex;
   align-items: center;
@@ -315,23 +315,23 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   margin-bottom: 0.35rem;
 }
 
 .rpt-shift-stat strong {
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .rpt-shift-total {
   margin-top: 0.6rem;
   padding-top: 0.6rem;
-  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  ;
   display: flex;
   justify-content: space-between;
   font-size: 0.95rem;
   font-weight: 800;
-  color: #10b981;
+  color: #34d399;
 }
 
 /* 7-DAY WEEKLY BAR CHART */
@@ -346,8 +346,8 @@
   height: 240px;
   padding: 1rem 0.5rem 0.5rem;
   background: rgba(15, 23, 42, 0.5);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
 }
 
 .rpt-bar-col {
@@ -374,15 +374,15 @@
   width: 100%;
   min-height: 4px;
   border-radius: 6px 6px 0 0;
-  background: linear-gradient(180deg, #f59e0b 0%, #b45309 100%);
-  transition: height 0.4s ease;
+  background: var(--accent-gold);
+  transition: height 0.4s var(--ease-out);
   position: relative;
   cursor: pointer;
 }
 
 .rpt-bar-col.is-today .rpt-bar-fill {
-  background: linear-gradient(180deg, #10b981 0%, #047857 100%);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+  background: var(--accent-gold);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4), inset 3px 0 0 #F59E0B;
 }
 
 .rpt-bar-fill:hover {
@@ -392,22 +392,23 @@
 .rpt-bar-val {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #fef08a;
+  color: var(--accent-gold-light);
   margin-bottom: 0.3rem;
   white-space: nowrap;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .rpt-bar-label {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--text-secondary);
   margin-top: 0.5rem;
   text-align: center;
 }
 
 .rpt-bar-date {
   font-size: 0.68rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .rpt-bar-col.is-today .rpt-bar-label {
@@ -417,8 +418,8 @@
 /* Data Tables */
 .rpt-table-container {
   overflow-x: auto;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
 }
 
 .rpt-table {
@@ -429,18 +430,18 @@
 }
 
 .rpt-table th {
-  background: rgba(15, 23, 42, 0.85);
-  color: #94a3b8;
+  background: var(--bg-card);
+  color: var(--text-secondary);
   font-weight: 700;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  ;
   white-space: nowrap;
 }
 
 .rpt-table td {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  color: #e2e8f0;
+  ;
+  color: var(--text-primary);
 }
 
 .rpt-table tr:hover {
@@ -483,7 +484,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  ;
   gap: 1rem;
 }
 
@@ -499,10 +500,10 @@
   flex-shrink: 0;
 }
 
-.rpt-rank-1 { background: #f59e0b; color: #0f172a; }
-.rpt-rank-2 { background: #94a3b8; color: #0f172a; }
-.rpt-rank-3 { background: #b45309; color: #fff; }
-.rpt-rank-other { background: rgba(255, 255, 255, 0.1); color: #cbd5e1; }
+.rpt-rank-1 { background: var(--accent-gold); color: #0f172a; }
+.rpt-rank-2 { background: var(--bg-card); color: var(--text-secondary); }
+.rpt-rank-3 { background: #94a3b8; color: #0f172a; }
+.rpt-rank-other { background: rgba(255, 255, 255, 0.1); color: var(--text-secondary); }
 
 .rpt-dish-info {
   flex: 1;
@@ -511,26 +512,27 @@
 .rpt-dish-name {
   font-weight: 700;
   font-size: 0.9rem;
-  color: #f1f5f9;
+  color: var(--text-primary);
 }
 
 .rpt-dish-qty {
   font-size: 0.78rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .rpt-dish-total {
   font-weight: 800;
-  color: #10b981;
+  color: #34d399;
   font-size: 0.92rem;
   text-align: right;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 /* Empty state */
 .rpt-empty {
   text-align: center;
   padding: 3rem 1rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .rpt-empty-icon {
@@ -541,7 +543,7 @@
 .rpt-empty-title {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
@@ -549,20 +551,49 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #f59e0b;
+  background: var(--accent-gold);
   color: #0f172a;
   padding: 0.65rem 1.25rem;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   font-weight: 800;
   text-decoration: none;
   font-size: 0.88rem;
   cursor: pointer;
   margin-top: 1rem;
   border: none;
-  transition: transform 0.2s ease;
+  transition: transform var(--duration-color) var(--ease-out),
+              background var(--duration-color) var(--ease-out);
 }
 
 .rpt-btn-goto-order:hover {
   transform: translateY(-2px);
-  filter: brightness(1.1);
+  background: #d97706;
+}
+
+/* Focus visible ring */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-gold-glow), inset 3px 0 0 #F59E0B;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  .rpt-card:hover {
+    transform: none;
+  }
+  .rpt-tab-btn:hover {
+    transform: none;
+  }
+  .rpt-btn-goto-order:hover {
+    transform: none;
+  }
 }

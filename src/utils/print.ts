@@ -259,7 +259,7 @@ export function generateReceiptHtml(order: Order, mode: PrintDocMode = 'receipt'
     `).join('');
 
     return `
-      <div style="width: ${widthMm}; max-width: ${widthMm}; margin: 0 auto; padding: 3px 2px; color: #000; background: #fff; font-family: Arial, 'Segoe UI', Tahoma, sans-serif; font-size: ${baseFontPx}px; line-height: 1.3;">
+      <div style="width: ${widthMm}; max-width: ${widthMm}; margin: 0 auto; padding: 3px 2px; color: #000; background: #fff; font-family: 'Manrope', system-ui, sans-serif; font-size: ${baseFontPx}px; line-height: 1.3;">
         <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
           <div style="font-size: ${baseFontPx + 3}px; font-weight: 900; text-transform: uppercase;">👨‍🍳 PHIẾU CHẾ BIẾN BẾP</div>
           <div style="font-size: ${baseFontPx + 5}px; font-weight: 900; margin-top: 3px; border: 2px solid #000; display: inline-block; padding: 2px 10px;">
@@ -302,7 +302,7 @@ export function generateReceiptHtml(order: Order, mode: PrintDocMode = 'receipt'
   `).join('');
 
   return `
-    <div style="width: ${widthMm}; max-width: ${widthMm}; margin: 0 auto; padding: 2px 1px; color: #000; background: #fff; font-family: Arial, 'Segoe UI', Tahoma, sans-serif; font-size: ${baseFontPx}px; line-height: 1.28;">
+    <div style="width: ${widthMm}; max-width: ${widthMm}; margin: 0 auto; padding: 2px 1px; color: #000; background: #fff; font-family: 'Manrope', system-ui, sans-serif; font-size: ${baseFontPx}px; line-height: 1.28;">
       <div style="text-align: center; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1.5px dashed #000;">
         <div style="font-size: ${baseFontPx + 3.5}px; font-weight: 900; letter-spacing: 0.4px; text-transform: uppercase;">${BRAND_NAME}</div>
         <div style="font-size: ${baseFontPx - 1.5}px; font-weight: 700; margin-top: 1px;">${BRAND_SUBTITLE}</div>
@@ -604,11 +604,11 @@ function ensurePrintStyles(paperSize: PaperSize = getPaperSize()) {
         background: #fff !important;
         color: #000 !important;
         z-index: 9999999 !important;
-        font-family: Arial, 'Segoe UI', Tahoma, sans-serif !important;
+        font-family: 'Manrope', system-ui, sans-serif;
       }
       #receipt-print-stage,
       #receipt-print-stage * {
-        font-family: Arial, 'Segoe UI', Tahoma, sans-serif !important;
+        font-family: 'Manrope', system-ui, sans-serif;
         color: #000 !important;
         box-sizing: border-box !important;
         -webkit-print-color-adjust: exact !important;
@@ -924,7 +924,7 @@ export function printShiftReport(params: {
   const netCashInDrawer = Math.max(0, (params.cash || 0) - (params.expenseTotal || 0));
 
   const html = `
-    <div style="width: ${widthMm}; max-width: ${widthMm}; margin: 0 auto; padding: 3px 2px; color: #000; background: #fff; font-family: Arial, sans-serif; font-size: 11.5px; line-height: 1.35;">
+    <div style="width: ${widthMm}; max-width: ${widthMm}; margin: 0 auto; padding: 3px 2px; color: #000; background: #fff; font-family: 'Manrope', system-ui, sans-serif; font-size: 11.5px; line-height: 1.35;">
       <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 5px;">
         <div style="font-size: 14px; font-weight: 900;">${BRAND_NAME}</div>
         <div style="font-size: 13px; font-weight: 900; margin-top: 2px;">📋 PHIẾU CHỐT KẾT CA</div>

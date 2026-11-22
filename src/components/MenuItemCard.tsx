@@ -59,8 +59,8 @@ export default function MenuItemCard({ item, onAdd, overridePrice, qtyInCart = 0
           <div
             className="menu-card__img menu-card__img--emoji"
             style={{
-              background: `linear-gradient(135deg, ${(cat?.color || '#f59e0b')}33 0%, rgba(15, 23, 42, 0.85) 100%)`,
-              borderBottom: `2px solid ${(cat?.color || '#f59e0b')}66`
+              background: `'#272727'`,
+               66`
             }}
           >
             {emoji}

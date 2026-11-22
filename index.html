@@ -13,5 +13,9 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <script>
+/* fail-safe: khong de noi dung bi an neu scroll-reveal khong kich hoat */
+setTimeout(function(){document.querySelectorAll('.reveal,[class*="reveal"]').forEach(function(el){el.classList.add('visible','is-visible','in-view','revealed');});},1800);
+</script>
+</body>
 </html>

@@ -665,12 +665,12 @@ export default function StaffPage() {
                 {Math.max(apiOrders, localTodayOrdersCount)} đơn
               </div>
             </div>
-            <div style={{ borderLeft: '1px solid rgba(255,255,255,0.15)', paddingLeft: '1.1rem' }}>
+            <div style={{ 255,255,0.15)', paddingLeft: '1.1rem' }}>
               <div style={{ fontSize: '0.75rem', color: '#f87171' }}>Chi đi chợ hôm nay</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#f87171' }}>{fmtVND(todayExpensesTotal)}</div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{expenses.length} phiếu chi</div>
             </div>
-            <div style={{ borderLeft: '1px solid rgba(255,255,255,0.15)', paddingLeft: '1.1rem' }}>
+            <div style={{ 255,255,0.15)', paddingLeft: '1.1rem' }}>
               <div style={{ fontSize: '0.75rem', color: '#38bdf8' }}>Lũy kế tháng</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#38bdf8' }}>
                 {fmtVND(Math.max(apiMonthRevenue, localTodayRevenue))}
@@ -1050,7 +1050,7 @@ export default function StaffPage() {
 
               {/* Tổng tiền & Tính tiền thừa / Mã QR */}
               {cart.length > 0 && (
-                <div style={{ borderTop: '1px dashed var(--glass-border)', margin: '10px 0', paddingTop: '10px' }}>
+                <div style={{  margin: '10px 0', paddingTop: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: 900 }}>
                     <span>TỔNG CỘNG:</span>
                     <span style={{ color: '#10b981' }}>{fmtVND(total)}</span>
@@ -1172,7 +1172,7 @@ export default function StaffPage() {
               )}
 
               {/* BẢNG CÀI ĐẶT MÁY IN BILL & NGÂN HÀNG (HIỂN THỊ TRÊN CẢ MÁY TÍNH & ĐIỆN THOẠI) */}
-              <div style={{ marginTop: '1rem', paddingTop: '0.9rem', borderTop: '1px dashed var(--glass-border)' }}>
+              <div style={{ marginTop: '1rem', paddingTop: '0.9rem',  }>
                 <div style={{
                   background: 'rgba(16, 185, 129, 0.08)',
                   border: '1px solid rgba(16, 185, 129, 0.35)',
@@ -1328,7 +1328,7 @@ export default function StaffPage() {
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid var(--glass-border)', textAlign: 'left' }}>
+                    <tr style={{  textAlign: 'left' }}>
                       <th style={{ padding: '8px' }}>Mã đơn</th>
                       <th style={{ padding: '8px' }}>Món & Ghi chú</th>
                       <th style={{ padding: '8px' }}>Phục vụ</th>
@@ -1349,7 +1349,7 @@ export default function StaffPage() {
                       }
 
                       return (
-                        <tr key={o.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                        <tr key={o.id} style={{ 255,255,0.06)' }}>
                           <td style={{ padding: '8px', fontWeight: 'bold', fontFamily: 'monospace', color: '#93c5fd' }}>
                             #{o.id}
                           </td>
@@ -1563,7 +1563,7 @@ export default function StaffPage() {
                   disabled={isSubmitting}
                   className="btn-primary"
                   style={{
-                    background: 'linear-gradient(135deg, #ef4444, #b91c1c)',
+                    background: '#ef4444',
                     padding: '0.85rem',
                     fontSize: '1rem',
                     fontWeight: 800
@@ -1590,7 +1590,7 @@ export default function StaffPage() {
                 <div style={{ overflowX: 'auto', maxHeight: '480px' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem' }}>
                     <thead>
-                      <tr style={{ borderBottom: '1px solid var(--glass-border)', textAlign: 'left' }}>
+                      <tr style={{  textAlign: 'left' }}>
                         <th style={{ padding: '8px' }}>Ngày/Giờ</th>
                         <th style={{ padding: '8px' }}>Nội dung & Hạng mục</th>
                         <th style={{ padding: '8px', textAlign: 'right' }}>Số tiền</th>
@@ -1602,7 +1602,7 @@ export default function StaffPage() {
                         const d = parseOrderDate(ex.time);
                         const dStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
                         return (
-                          <tr key={ex.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                          <tr key={ex.id} style={{ 255,255,0.06)' }}>
                             <td style={{ padding: '8px', whiteSpace: 'nowrap', color: '#94a3b8' }}>
                               <div>{dStr}</div>
                               <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>{ex.staff}</div>
@@ -1770,7 +1770,7 @@ export default function StaffPage() {
                     </div>
                   </div>
 
-                  <div style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(245,158,11,0.12)', borderLeft: '3px solid #f59e0b', borderRadius: '4px', fontSize: '0.82rem', color: '#fde68a' }}>
+                  <div style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(245,158,11,0.12)',  borderRadius: '4px', fontSize: '0.82rem', color: '#fde68a' }}>
                     💡 <strong>Lưu ý kiểm soát chất lượng:</strong> {sop.note}
                   </div>
                 </div>
@@ -1810,7 +1810,7 @@ export default function StaffPage() {
                   value={offData.reason} onChange={e => setOffData({ ...offData, reason: e.target.value })} required />
               </div>
               <button type="submit" disabled={isSubmitting} className="btn-primary"
-                style={{ background: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)', padding: '0.8rem', fontSize: '1rem', fontWeight: 'bold' }}>
+                style={{ background: '#e74c3c', padding: '0.8rem', fontSize: '1rem', fontWeight: 'bold' }}>
                 🚀 Gửi Báo Cáo Xin Nghỉ (Off Ca)
               </button>
             </form>
@@ -1841,7 +1841,7 @@ export default function StaffPage() {
         {/* ===================================================== */}
         {tab === 'schedule' && (
           <div className="glass-panel" style={{ maxWidth: '900px', margin: '0 auto' }}>
-            <h2 style={{ color: '#f59e0b', marginTop: 0, borderBottom: '2px solid #f59e0b', paddingBottom: '0.5rem' }}>
+            <h2 style={{ color: '#f59e0b', marginTop: 0,  paddingBottom: '0.5rem' }}>
               ⏰ Khung Giờ Vận Hành & Phối Hợp Bếp Đồ Ăn Nhanh
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.2rem' }}>
@@ -1916,7 +1916,7 @@ export default function StaffPage() {
         {/* ===================================================== */}
         {tab === 'report' && (
           <div className="glass-panel" style={{ maxWidth: '640px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.8rem', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem',  paddingBottom: '0.8rem', flexWrap: 'wrap', gap: '8px' }}>
               <h2 style={{ color: '#f39c12', margin: 0 }}>📋 Báo Cáo & In Phiếu Chốt Ca</h2>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button
@@ -1938,7 +1938,7 @@ export default function StaffPage() {
                   🖨️ In Phiếu Chốt Ca ({paperSizeState}mm)
                 </button>
                 <button type="button" onClick={handleSendSummary} disabled={isSubmitting} className="btn-primary"
-                  style={{ background: 'linear-gradient(135deg, #00b09b 0%, #96c93d 100%)', padding: '0.5rem 0.9rem', fontSize: '0.82rem', fontWeight: 'bold' }}>
+                  style={{ background: '#00b09b', padding: '0.5rem 0.9rem', fontSize: '0.82rem', fontWeight: 'bold' }}>
                   🚀 Gửi Tổng Hợp Nhanh
                 </button>
               </div>
@@ -1963,7 +1963,7 @@ export default function StaffPage() {
                 </div>
               </div>
               <button type="button" onClick={handleAutoFillReport}
-                style={{ background: 'linear-gradient(90deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold', width: '100%' }}>
+                style={{ background: '#10b981', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold', width: '100%' }}>
                 ⚡ TỰ ĐIỀN CHÍNH XÁC DOANH THU & TIỀN MẶT & CHUYỂN KHOẢN CA NÀY
               </button>
             </div>
